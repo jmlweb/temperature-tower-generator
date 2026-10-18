@@ -32,7 +32,7 @@ These are checked first against TSK-001's result: a refuted assumption meets the
 - In (Phase 1): PrusaSlicer ASCII G-code analysis, transformation, validation and preview. Arc moves (`G2`/`G3`) are an error.
 - In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109` when the config's wait-for-temperature flag is set).
 - In (Phase 1): static hosting with an anonymous event counter.
-- Phase 2 (always): arc support, optional back text, `.bgcode`, the RepRapFirmware dialect (`G10 P0 S…`).
+- Phase 2 (always): arc support, optional back text, the RepRapFirmware dialect (`G10 P0 S…`). Binary G-code (`.bgcode`) moved into Phase 1 (ADR-0007, TSK-008) because the Core One exports it by default.
 - Phase 2 (conditional): OrcaSlicer and Cura fixtures and config readers. These go ahead only if TSK-001 or post-launch reports show those users want the verified change report.
 - Phase 3 (conditional, same evidence rule): more slicers and material presets.
 - Out: full calibration suite (PA, flow, input shaping), slicing inside the tool, accounts, cloud storage, server-side processing.

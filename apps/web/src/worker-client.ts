@@ -1,4 +1,4 @@
-import type { Inspection, ProcessResult, TowerConfig } from '@temptower/core'
+import type { Inspection, ProcessResult, ReportInput, TowerConfig } from '@temptower/core'
 import type { GcodeWorkerRequest, GcodeWorkerResponse } from './workers/gcode.worker.ts'
 import type { TowerWorkerRequest, TowerWorkerResponse } from './workers/tower.worker.ts'
 
@@ -31,8 +31,15 @@ const createRequestChannel = <Request extends { id: number }, Response extends {
     })
 }
 
+export interface InspectResult {
+  readonly inspection: Inspection
+  readonly input: ReportInput
+  /** Why a binary file could not be decoded (ADR-0007), or null. */
+  readonly binaryError: string | null
+}
+
 export interface GcodeClient {
-  inspect(fileName: string, bytes: ArrayBuffer): Promise<{ inspection: Inspection; isBinary: boolean }>
+  inspect(fileName: string, bytes: ArrayBuffer): Promise<InspectResult>
   process(config: TowerConfig): Promise<ProcessResult>
 }
 
@@ -43,7 +50,7 @@ export const createGcodeClient = (): GcodeClient => {
     inspect: async (fileName, bytes) => {
       const response = await send({ type: 'inspect', fileName, bytes }, [bytes])
       if (response.type !== 'inspected') throw new Error('Unexpected worker response')
-      return { inspection: response.inspection, isBinary: response.isBinary }
+      return { inspection: response.inspection, input: response.input, binaryError: response.binaryError }
     },
     process: async (config) => {
       const response = await send({ type: 'process', config })

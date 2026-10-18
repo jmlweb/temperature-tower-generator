@@ -1,9 +1,13 @@
 {
   "toolVersion": "0.1.0",
-  "fileName": "binary-gcode.bgcode",
+  "fileName": "binary-gcode-unreadable.bgcode",
   "slicer": {
     "name": "unknown",
     "version": null
+  },
+  "input": {
+    "format": "binary",
+    "binary": null
   },
   "baseTemperature": {
     "value": null,
@@ -28,8 +32,8 @@
   "errors": [
     {
       "severity": "error",
-      "code": "binary-gcode",
-      "message": "Binary G-code (.bgcode) is not supported. Export ASCII G-code from PrusaSlicer (Printer Settings > General > Supports binary G-code: off)."
+      "code": "binary-gcode-unreadable",
+      "message": "Binary G-code could not be decoded: File is 8 bytes, shorter than the 10-byte header. Re-export the file from PrusaSlicer, or export plain G-code."
     }
   ],
   "warnings": [],

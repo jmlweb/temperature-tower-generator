@@ -5,6 +5,10 @@
     "name": "PrusaSlicer",
     "version": "3.0.0-alpha12"
   },
+  "input": {
+    "format": "text",
+    "binary": null
+  },
   "baseTemperature": {
     "value": 215,
     "source": "slicer-config"

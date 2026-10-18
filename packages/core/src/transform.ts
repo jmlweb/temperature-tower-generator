@@ -52,8 +52,19 @@ export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readon
   return placements
 }
 
-export const tierCommand = (config: TowerConfig, tier: number): string =>
-  `${config.waitForTemperature ? 'M109' : 'M104'} S${tierTemperature(config, tier)} ${MARKER} tier ${tier}`
+/**
+ * Where the tier marker goes: `inline` as a trailing comment (plain G-code), or
+ * `line` as its own comment line before a bare command, because MeatPack drops
+ * inline comments from binary G-code (ADR-0007).
+ */
+export type MarkerStyle = 'inline' | 'line'
+
+export const tierMarkerLine = (tier: number): string => `${MARKER} tier ${tier}`
+
+export const tierCommand = (config: TowerConfig, tier: number, markerStyle: MarkerStyle = 'inline'): string => {
+  const command = `${config.waitForTemperature ? 'M109' : 'M104'} S${tierTemperature(config, tier)}`
+  return markerStyle === 'inline' ? `${command} ${tierMarkerLine(tier)}` : command
+}
 
 export const NEUTRALIZED_PREFIX = `${MARKER} neutralized: `
 
@@ -73,13 +84,14 @@ export interface TransformInput {
   readonly lines: readonly GcodeLine[]
   readonly motion: MotionAnalysis
   readonly config: TowerConfig
+  readonly markerStyle?: MarkerStyle
 }
 
 /**
  * Pure line-preserving transform (ADR-0002): every output line is an input line
  * byte-for-byte, an inserted tier command, a header line, or a neutralized line.
  */
-export const transformGcode = ({ lines, motion, config }: TransformInput): TransformResult => {
+export const transformGcode = ({ lines, motion, config, markerStyle = 'inline' }: TransformInput): TransformResult => {
   const tiers = planTiers(config, motion.layers)
   const insertBefore = new Map<number, TierPlacement[]>()
   for (const placement of tiers) {
@@ -109,9 +121,11 @@ export const transformGcode = ({ lines, motion, config }: TransformInput): Trans
     const inserts = insertBefore.get(line.index)
     if (inserts) {
       for (const placement of inserts) {
-        const text = tierCommand(config, placement.tier)
-        changes.push({ kind: 'insert', lineIndex: line.index, tier: placement.tier, text })
-        output.push(text, ending)
+        const inserted = markerStyle === 'inline' ? [tierCommand(config, placement.tier)] : [tierMarkerLine(placement.tier), tierCommand(config, placement.tier, 'line')]
+        for (const text of inserted) {
+          changes.push({ kind: 'insert', lineIndex: line.index, tier: placement.tier, text })
+          output.push(text, ending)
+        }
       }
     }
     if (neutralize.has(line.index)) {

@@ -4,7 +4,7 @@ A free, 100% client-side browser tool for PrusaSlicer users tuning a new filamen
 
 1. Pick a material preset and a temperature range; download a labelled tower STL.
 2. Slice the STL in PrusaSlicer with your own profile.
-3. Upload the G-code; the page inserts one temperature command per tier, shows every change (temperature-vs-Z chart, inserted and neutralized lines, warnings) and only then offers the download.
+3. Upload the G-code, plain `.gcode` or binary `.bgcode` (Core One, MK4S, XL, MINI); the page inserts one temperature command per tier, shows every change (temperature-vs-Z chart, inserted and neutralized lines, warnings) and only then offers the download in the same format.
 
 Nothing leaves your device. The only network request is an optional anonymous "file processed" counter in production builds (see `docs/adr/0001-client-side-only-processing.md`).
 
@@ -22,4 +22,4 @@ See `AGENTS.md` for the layout, the fixture workflow and the project rules, and 
 
 ## Status
 
-Phase 1 (PrusaSlicer, ASCII G-code, Marlin/Prusa/Klipper dialect). Arc moves (`G2`/`G3`) are rejected with an error; disable arc fitting in Print Settings > Advanced before slicing.
+Phase 1 (PrusaSlicer, plain or binary G-code, Marlin/Prusa/Klipper dialect). Binary G-code is decoded, transformed as text and re-encoded with the metadata and thumbnails copied byte-for-byte (`docs/adr/0007-binary-gcode-decode-transform-reencode.md`). Arc moves (`G2`/`G3`) are rejected with an error; disable arc fitting in Print Settings > Advanced before slicing.

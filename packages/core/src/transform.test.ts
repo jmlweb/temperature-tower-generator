@@ -1,9 +1,10 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
+import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEncode, splitGcodeChunks, utf8Encode, writeBlock, writeFileHeader, concatBytes, BgcodeBlockType, BgcodeCompression, ChecksumType, GcodeEncoding, MetadataEncoding } from './bgcode/index.ts'
 import { parseGcode } from './gcode-lines.ts'
 import { analyzeMotion } from './motion.ts'
 import { Material, type TowerConfig } from './tower-config.ts'
-import { NEUTRALIZED_PREFIX, planTiers, transformGcode } from './transform.ts'
+import { NEUTRALIZED_PREFIX, planTiers, tierMarkerLine, transformGcode } from './transform.ts'
 import { MARKER } from './version.ts'
 
 const config: TowerConfig = {
@@ -76,6 +77,14 @@ describe('transform', () => {
     expect(head[3]).toContain('3 tier commands inserted, 0 temperature commands neutralized')
   })
 
+  it('puts the tier marker on its own line when asked, for binary output (ADR-0007)', () => {
+    const lines = parseGcode(towerGcode(19))
+    const result = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line' })
+    const inserted = result.changes.filter((c) => c.kind === 'insert').map((c) => c.text)
+    expect(inserted).toEqual([tierMarkerLine(0), 'M104 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
+    expect(result.text).toContain(`\n${MARKER} tier 1\nM104 S225\nG1 X10 Y10 E1 ; layer at 7\n`)
+  })
+
   it('leaves tiers unplaced when the model is too short', () => {
     const lines = parseGcode(towerGcode(8))
     const tiers = planTiers(config, analyzeMotion(lines).layers)
@@ -140,6 +149,57 @@ describe('line-preserving property (ADR-0002)', () => {
       }
       expect(recovered.join('\n')).toBe(inputLines.join('\n'))
       expect(result.text.startsWith(`${MARKER} `)).toBe(true)
+    },
+  )
+})
+
+/** A minimal binary file around `text`, in PrusaSlicer's default encoding. */
+const binaryFile = (text: string): Uint8Array =>
+  concatBytes([
+    writeFileHeader(ChecksumType.CRC32),
+    writeBlock({ type: BgcodeBlockType.FILE_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ Producer: 'PrusaSlicer 2.9.0' }) }, ChecksumType.CRC32),
+    writeBlock({ type: BgcodeBlockType.PRINTER_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ printer_model: 'COREONE' }) }, ChecksumType.CRC32),
+    ...splitGcodeChunks(utf8Encode(text)).map((chunk) =>
+      writeBlock({ type: BgcodeBlockType.GCODE, compression: BgcodeCompression.HEATSHRINK_12_4, parameters: encodingParameters(GcodeEncoding.MEATPACK_COMMENTS), data: meatpackEncode(chunk, { removeComments: false }) }, ChecksumType.CRC32),
+    ),
+  ])
+
+const TIER_MARKER_LINE = new RegExp(`^${MARKER.replaceAll('[', '\\[').replaceAll(']', '\\]')} tier (\\d+)$`)
+
+describe('line-preserving property over binary G-code (ADR-0007)', () => {
+  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), configArbitrary])(
+    'every decoded output line is a decoded input line, a marker line plus its command, a header, or a neutralized line',
+    (inputLines, towerConfig) => {
+      // The input goes through MeatPack once, as a slicer export would, so the decoded text is the canonical form.
+      const input = decodeBgcode(binaryFile(inputLines.length === 0 ? '' : `${inputLines.join('\n')}\n`))
+      const parsed = parseGcode(input.text)
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, markerStyle: 'line' })
+      const output = decodeBgcode(encodeBgcode(input, result.text))
+
+      const outputLines = output.text.split('\n')
+      const recovered: string[] = []
+      let expectCommand = false
+      for (const line of outputLines) {
+        if (expectCommand) {
+          expect(line).toMatch(/^M10[49] S\d+$/)
+          expectCommand = false
+          continue
+        }
+        if (TIER_MARKER_LINE.test(line)) {
+          expectCommand = true
+          continue
+        }
+        if (line.startsWith(`${MARKER} `) && !line.startsWith(NEUTRALIZED_PREFIX)) continue
+        if (line.startsWith(NEUTRALIZED_PREFIX)) {
+          const original = line.slice(NEUTRALIZED_PREFIX.length)
+          expect(original).toMatch(/^\s*M10[49]\b/i)
+          recovered.push(original)
+          continue
+        }
+        recovered.push(line)
+      }
+      expect(recovered.join('\n')).toBe(input.text.split('\n').join('\n'))
+      expect(output.text.startsWith(`${MARKER} `)).toBe(true)
     },
   )
 })

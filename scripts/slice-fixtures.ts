@@ -5,22 +5,41 @@
  * the PrusaSlicer CLI (`PRUSA_SLICER` env var or the default app path) for each
  * profile variant, and writes `<variant>.gcode` plus `<variant>.config.json`.
  * Synthetic fixtures: small hand-shaped files for checks a plain slice cannot
- * trigger (no extrusion, variable layer height, binary, multi-tool, marker
- * mismatch). Golden outputs and report snapshots come from `pnpm fixture`.
+ * trigger (no extrusion, variable layer height, unreadable binary, multi-tool,
+ * marker mismatch). The Core One variant is sliced as text with the stock
+ * binary-G-code profile and converted to `.bgcode` by `bgcode-from-text.ts`,
+ * because the 3.0 CLI cannot export binary (LRN-002). Golden outputs and
+ * report snapshots come from `pnpm fixture`.
  *
  * Usage: `pnpm slice-fixtures` (needs PrusaSlicer installed; see AGENTS.md).
+ * `--only <name>` re-slices one variant; `--synthetic-only` skips the slicer.
  */
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Material, encodeTowerConfigName, type TowerConfig } from '../packages/core/src/index.ts'
+import { Material, decodeBgcode, encodeTowerConfigName, type TowerConfig } from '../packages/core/src/index.ts'
 import { buildTower, loadManifold, writeBinaryStl } from '../packages/geometry/src/index.ts'
+import { bgcodeFromText, solidQoiThumbnail } from './bgcode-from-text.ts'
 
 const SLICER = process.env.PRUSA_SLICER ?? '/Applications/PrusaSlicer-3.0.0-alpha12.app/Contents/MacOS/PrusaSlicer'
-const PRINTER = 'Prusa MK3S 0.4'
-const FILAMENT = 'Generic PLA@MK2.5_MK3 0.4'
-const PRINT_PROFILES = { '0.20': '0.20mm QUALITY @MK3 0.4', '0.15': '0.15mm QUALITY @MK3 0.4' } as const
+
+/** Profile names as the 3.0 CLI resolves them; `--query-print-tool-filament-profiles` lists them per printer. */
+interface Profiles {
+  readonly printer: string
+  readonly filament: string
+  readonly print: Readonly<Record<string, string>>
+}
+const MK3S: Profiles = {
+  printer: 'Prusa MK3S 0.4',
+  filament: 'Generic PLA@MK2.5_MK3 0.4',
+  print: { '0.20': '0.20mm QUALITY @MK3 0.4', '0.15': '0.15mm QUALITY @MK3 0.4' },
+}
+const CORE_ONE: Profiles = {
+  printer: 'Prusa CORE One 0.4 HF',
+  filament: 'Generic PLA@COREONE HF0.4@COREONE 0.4',
+  print: { '0.20': '0.20mm SPEED @COREONE 0.4HF' },
+}
 
 const OUT_DIR = join(import.meta.dirname, '..', 'fixtures', 'prusaslicer')
 const WORK_DIR = join(tmpdir(), 'temptower-fixtures')
@@ -38,12 +57,15 @@ const FIXTURE_CONFIG: TowerConfig = {
 
 interface Variant {
   readonly name: string
-  readonly layer: keyof typeof PRINT_PROFILES
-  readonly zhop: number
+  readonly profiles?: Profiles
+  readonly layer: '0.20' | '0.15'
+  readonly zhop?: number
   readonly relativeE: boolean
   readonly arcs?: boolean
   readonly duplicate?: number
   readonly completeObjects?: boolean
+  /** Keep this thumbnail spec (e.g. `16x16/QOI`) and convert the slice to `.bgcode`. */
+  readonly binary?: string
   readonly expect?: { errors?: string[]; warnings?: string[] }
   readonly notes?: string
 }
@@ -71,6 +93,14 @@ const variants: readonly Variant[] = [
   { name: 'arc-moves', layer: '0.20', zhop: 0.4, relativeE: true, arcs: true, expect: { errors: ['arc-moves'] }, notes: 'Arc fitting on; PrusaSlicer 3.0 enables it by default.' },
   { name: 'multiple-objects', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, expect: { errors: ['multiple-objects'] } },
   { name: 'sequential-printing', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, completeObjects: true, expect: { errors: ['multiple-objects'] } },
+  {
+    name: 'coreone-binary',
+    profiles: CORE_ONE,
+    layer: '0.20',
+    relativeE: true,
+    binary: '16x16/QOI',
+    notes: 'Stock Core One profile (binary G-code on, ramping lift), arc fitting off, converted to .bgcode by scripts/bgcode-from-text.ts with a stand-in 16x16 QOI thumbnail, because the headless CLI renders none (ADR-0007, LRN-002).',
+  },
 ]
 
 type Json = Record<string, unknown>
@@ -82,10 +112,12 @@ const run = (args: readonly string[]): void => {
   if (result.status !== 0 || failure) throw new Error(`PrusaSlicer refused ${args.join(' ')}: ${failure ?? `exit ${result.status}`}`)
 }
 
-const saveBaseConfig = (layer: keyof typeof PRINT_PROFILES): Json => {
-  const path = join(WORK_DIR, `base-${layer}.json`)
+const saveBaseConfig = (profiles: Profiles, layer: Variant['layer']): Json => {
+  const printProfile = profiles.print[layer]
+  if (printProfile === undefined) throw new Error(`No ${layer} print profile for ${profiles.printer}`)
+  const path = join(WORK_DIR, `base-${profiles.printer.replaceAll(/[^a-z0-9]+/gi, '_')}-${layer}.json`)
   if (!existsSync(path)) {
-    run(['--printer-profile', PRINTER, '--print-profile', PRINT_PROFILES[layer], '--material-profile', FILAMENT, '--save', path])
+    run(['--printer-profile', profiles.printer, '--print-profile', printProfile, '--material-profile', profiles.filament, '--save', path])
   }
   return JSON.parse(readFileSync(path, 'utf8')) as Json
 }
@@ -99,9 +131,9 @@ const patch = (config: Json, key: string, value: unknown): void => {
 }
 
 const sliceVariant = (variant: Variant, stlPath: string): void => {
-  const config = saveBaseConfig(variant.layer)
+  const config = saveBaseConfig(variant.profiles ?? MK3S, variant.layer)
   patch(config, 'arc_fitting', variant.arcs ? 'emit_center' : 'disabled')
-  patch(config, 'retract_lift', variant.zhop)
+  if (variant.zhop !== undefined) patch(config, 'retract_lift', variant.zhop)
   patch(config, 'use_relative_e_distances', variant.relativeE)
   if (!variant.relativeE) {
     // PrusaSlicer refuses `G92 E0` in custom G-code under absolute E, and the
@@ -112,21 +144,34 @@ const sliceVariant = (variant: Variant, stlPath: string): void => {
     printer.start_gcode = printer.start_gcode!.replace('M83 ; extruder relative mode', 'M82 ; extruder absolute mode')
   }
   patch(config, 'complete_objects', variant.completeObjects ?? false)
-  patch(config, 'thumbnails', '')
+  patch(config, 'thumbnails', variant.binary ?? '')
   const configPath = join(WORK_DIR, `${variant.name}.json`)
   writeFileSync(configPath, JSON.stringify(config))
 
-  const gcodePath = join(OUT_DIR, `${variant.name}.gcode`)
-  rmSync(gcodePath, { force: true })
-  run(['--load', configPath, '--export-gcode', stlPath, '--output', gcodePath, ...(variant.duplicate ? ['--duplicate', String(variant.duplicate)] : [])])
-  const text = readFileSync(gcodePath, 'utf8')
+  const textPath = variant.binary ? join(WORK_DIR, `${variant.name}.gcode`) : join(OUT_DIR, `${variant.name}.gcode`)
+  rmSync(textPath, { force: true })
+  run(['--load', configPath, '--export-gcode', stlPath, '--output', textPath, ...(variant.duplicate ? ['--duplicate', String(variant.duplicate)] : [])])
+  const text = readFileSync(textPath, 'utf8')
   if (text.includes(process.env.HOME ?? '/nonexistent')) throw new Error(`${variant.name}: output embeds a home path`)
+
+  let inputName = `${variant.name}.gcode`
+  let size = text.length
+  if (variant.binary) {
+    // The CLI writes text even with binary_gcode on, and renders no thumbnail (LRN-002); binarize it
+    // the way the GUI export would, with a stand-in thumbnail so the byte-for-byte copy is exercised.
+    const bytes = bgcodeFromText(text, { fallbackThumbnails: [solidQoiThumbnail(16, 16, [0xff, 0x80, 0x00])] })
+    const decoded = decodeBgcode(bytes)
+    if (decoded.summary.thumbnails === 0) throw new Error(`${variant.name}: no thumbnail in the converted file`)
+    inputName = `${variant.name}.bgcode`
+    writeFileSync(join(OUT_DIR, inputName), bytes)
+    size = bytes.length
+  }
 
   writeFileSync(
     join(OUT_DIR, `${variant.name}.config.json`),
-    `${JSON.stringify({ config: FIXTURE_CONFIG, ...(variant.expect ? { expect: variant.expect } : {}), ...(variant.notes ? { notes: variant.notes } : {}) }, null, 2)}\n`,
+    `${JSON.stringify({ ...(variant.binary ? { gcode: inputName } : {}), config: FIXTURE_CONFIG, ...(variant.expect ? { expect: variant.expect } : {}), ...(variant.notes ? { notes: variant.notes } : {}) }, null, 2)}\n`,
   )
-  console.log(`sliced ${variant.name} (${Math.round(text.length / 1024)} KB)`)
+  console.log(`sliced ${variant.name} (${Math.round(size / 1024)} KB)`)
 }
 
 /** A minimal tower-shaped file: start G-code, one square per layer, end G-code. */
@@ -166,6 +211,9 @@ const writeDerived = (name: string, gcode: string, config: TowerConfig, expect: 
 
 const main = async (): Promise<void> => {
   const syntheticOnly = process.argv.includes('--synthetic-only')
+  const onlyIndex = process.argv.indexOf('--only')
+  const only = onlyIndex === -1 ? null : process.argv[onlyIndex + 1]
+  if (only !== null && !variants.some((variant) => variant.name === only)) throw new Error(`Unknown variant ${only}; known: ${variants.map((v) => v.name).join(', ')}`)
   mkdirSync(OUT_DIR, { recursive: true })
   mkdirSync(WORK_DIR, { recursive: true })
 
@@ -175,13 +223,16 @@ const main = async (): Promise<void> => {
     const tower = buildTower(wasm, FIXTURE_CONFIG)
     const stlPath = join(WORK_DIR, `${encodeTowerConfigName(FIXTURE_CONFIG)}.stl`)
     writeFileSync(stlPath, writeBinaryStl(tower.mesh))
-    for (const variant of variants) sliceVariant(variant, stlPath)
+    for (const variant of variants) {
+      if (only === null || variant.name === only) sliceVariant(variant, stlPath)
+    }
   }
 
   writeSynthetic('no-extrusion', syntheticTower({ top: 0 }), { errors: ['no-extrusion'] })
   // 0.2 + 40 alternating 0.3/0.1 layers + 54 × 0.2 = 19 mm, so only the layer height check fires.
   writeSynthetic('variable-layer-height', syntheticTower({ heights: [0.2, ...Array.from({ length: 40 }, (_, i) => (i % 2 === 0 ? 0.3 : 0.1)), ...Array.from({ length: 54 }, () => 0.2)] }), { errors: ['variable-layer-height'] })
-  writeSynthetic('binary-gcode', new Uint8Array([0x47, 0x43, 0x44, 0x45, 0x01, 0x00, 0x00, 0x00]), { errors: ['binary-gcode'] }, 'binary-gcode.bgcode')
+  // A GCDE magic with the header cut off: the decoder must refuse it with a reason (ADR-0007).
+  writeSynthetic('binary-gcode-unreadable', new Uint8Array([0x47, 0x43, 0x44, 0x45, 0x01, 0x00, 0x00, 0x00]), { errors: ['binary-gcode-unreadable'] }, 'binary-gcode-unreadable.bgcode')
   writeSynthetic('multi-tool', syntheticTower({ top: 19, extra: (z) => (z === 0.2 ? ['T0'] : z === 7 ? ['T1', 'M104 S230 T1'] : []) }), { warnings: ['multi-tool'] })
   writeSynthetic('marker-mismatch', `${syntheticTower({ top: 19 })};LAYER_CHANGE\n;Z:40\n`, { warnings: ['marker-mismatch'] })
 

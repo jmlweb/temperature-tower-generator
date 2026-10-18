@@ -1,3 +1,4 @@
+import type { BgcodeSummary } from './bgcode/index.ts'
 import { encodeTowerConfigName } from './filename-codec.ts'
 import type { MotionAnalysis } from './motion.ts'
 import { typicalLayerHeight } from './motion.ts'
@@ -19,6 +20,12 @@ export interface ChartPoint {
   readonly temperature: number | null
 }
 
+/** Whether the upload was plain text or binary G-code, and how the binary was encoded (ADR-0007). */
+export interface ReportInput {
+  readonly format: 'text' | 'binary'
+  readonly binary: BgcodeSummary | null
+}
+
 export interface ReportLine {
   /** 1-based line number in the input file. */
   readonly lineNumber: number
@@ -34,6 +41,7 @@ export interface Report {
   readonly toolVersion: string
   readonly fileName: string
   readonly slicer: { readonly name: string; readonly version: string | null }
+  readonly input: ReportInput
   readonly baseTemperature: { readonly value: number | null; readonly source: BaseTemperatureSource }
   readonly config: TowerConfig
   readonly configName: string
@@ -52,7 +60,7 @@ export interface Report {
   readonly canDownload: boolean
 }
 
-export interface ReportInput {
+export interface BuildReportInput {
   readonly fileName: string
   readonly slicer: SlicerInfo
   readonly motion: MotionAnalysis
@@ -60,6 +68,7 @@ export interface ReportInput {
   readonly issues: readonly ValidationIssue[]
   readonly tiers: readonly TierPlacement[]
   readonly changes: readonly Change[]
+  readonly input: ReportInput
 }
 
 const baseTemperature = (slicer: SlicerInfo, motion: MotionAnalysis): Report['baseTemperature'] => {
@@ -77,7 +86,7 @@ export const buildChart = (config: TowerConfig, base: number | null, tiers: read
   return points
 }
 
-export const buildReport = ({ fileName, slicer, motion, config, issues, tiers, changes }: ReportInput): Report => {
+export const buildReport = ({ fileName, slicer, motion, config, issues, tiers, changes, input }: BuildReportInput): Report => {
   const errors = issues.filter((issue) => issue.severity === Severity.ERROR)
   const warnings = issues.filter((issue) => issue.severity === Severity.WARNING)
   const base = baseTemperature(slicer, motion)
@@ -85,6 +94,7 @@ export const buildReport = ({ fileName, slicer, motion, config, issues, tiers, c
     toolVersion: TOOL_VERSION,
     fileName,
     slicer: { name: slicer.slicer, version: slicer.version },
+    input,
     baseTemperature: base,
     config,
     configName: encodeTowerConfigName(config),

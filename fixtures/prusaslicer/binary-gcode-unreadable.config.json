@@ -1,5 +1,5 @@
 {
-  "gcode": "binary-gcode.bgcode",
+  "gcode": "binary-gcode-unreadable.bgcode",
   "config": {
     "material": "PLA",
     "startTemperature": 230,
@@ -11,7 +11,7 @@
   },
   "expect": {
     "errors": [
-      "binary-gcode"
+      "binary-gcode-unreadable"
     ]
   },
   "notes": "Synthetic fixture written by scripts/slice-fixtures.ts."

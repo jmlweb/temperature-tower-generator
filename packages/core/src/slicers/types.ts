@@ -1,9 +1,13 @@
+import type { BgcodeMetadata } from '../bgcode/index.ts'
 import type { GcodeLine } from '../gcode-lines.ts'
 
 export interface LayerMarker {
   readonly lineIndex: number
   readonly z: number
 }
+
+/** Metadata blocks of a binary input, or null for plain text (ADR-0007). */
+export type SlicerMetadata = BgcodeMetadata | null
 
 /**
  * What a slicer adapter recovers from comments. Everything here is optional
@@ -27,6 +31,6 @@ export interface SlicerInfo {
 
 export interface SlicerReader {
   readonly name: string
-  detect(lines: readonly GcodeLine[]): boolean
-  read(lines: readonly GcodeLine[]): SlicerInfo
+  detect(lines: readonly GcodeLine[], metadata: SlicerMetadata): boolean
+  read(lines: readonly GcodeLine[], metadata: SlicerMetadata): SlicerInfo
 }

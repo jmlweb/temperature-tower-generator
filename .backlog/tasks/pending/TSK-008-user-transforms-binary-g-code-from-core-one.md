@@ -24,30 +24,35 @@ Scope:
 - Run the existing motion analysis, validation and line-preserving transform on the decoded text.
 - Re-encode the transformed text with the same block parameters, keep all non-G-code blocks (thumbnails, metadata) byte-for-byte, and recompute checksums.
 - Output file name `<base>_temptower.bgcode`; the report states that the input was binary and which compression and encoding the blocks used.
-- Config recovery (ADR-0005) reads object names from the decoded text and from the print metadata block.
+- Config recovery (ADR-0005) reads object names from the decoded text and from `objects_info` in the printer metadata block.
 - Remove the `binary-gcode` error from `validateGcode`; replace it with an error for an unparseable or unsupported `.bgcode` version.
 
 Out of scope: writing binary G-code for a plain-text input, and the Prusa Connect upload flow.
 
 ## Acceptance Criteria
 
-- [ ] New ADR accepted before implementation: binary G-code is supported by decode, transform, re-encode; the ADR-0002 line guarantee applies to the decoded text
-- [ ] A `.bgcode` fixture sliced from the fixture tower with a stock Core One profile (binary export on, arc fitting off) round-trips: decode, transform, encode, decode again, and the decoded output equals the plain-G-code golden for the same config, apart from the `[temptower]` header
-- [ ] Non-G-code blocks (thumbnails, metadata) in the output are byte-for-byte equal to the input blocks
-- [ ] The property test from ADR-0002 also runs over the decoded text of a binary input
-- [ ] The report shows the binary format version, block compression and encoding, and the download delivers `<base>_temptower.bgcode`
-- [ ] The decoder loads lazily and only when a binary input is uploaded; a plain `.gcode` upload never downloads the WASM
-- [ ] Unsupported or corrupt `.bgcode` produces a clear error in the report and no output file
+- [x] New ADR accepted before implementation: binary G-code is supported by decode, transform, re-encode; the ADR-0002 line guarantee applies to the decoded text (ADR-0007)
+- [x] A `.bgcode` fixture sliced from the fixture tower with a stock Core One profile (binary export on, arc fitting off) round-trips: decode, transform, encode, decode again, and the decoded output equals the golden (`fixtures/prusaslicer/coreone-binary.*`; the CLI cannot export binary, so the slice is converted by `scripts/bgcode-from-text.ts`, see LRN-002)
+- [x] Non-G-code blocks (thumbnails, metadata) in the output are byte-for-byte equal to the input blocks (fixture test and codec unit test)
+- [x] The property test from ADR-0002 also runs over the decoded text of a binary input (`transform.test.ts`)
+- [x] The report shows the binary format version, block compression and encoding, and the download delivers `<base>_temptower.bgcode`
+- [x] A plain `.gcode` upload downloads nothing extra: the codec is pure TypeScript inside the G-code worker bundle (about 10 kB), no WASM at all
+- [x] Unsupported or corrupt `.bgcode` produces a clear error in the report and no output file (`binary-gcode-unreadable` fixture)
+- [ ] A `.bgcode` exported from the PrusaSlicer GUI with a Core One profile decodes and transforms in the page (user gate: the CLI cannot export binary, LRN-002)
 - [ ] One physical print on a Core One from the transformed `.bgcode` reaches every tier at its temperature (user gate, can land after launch)
 
 ## Notes
 
-- Replaces the current workaround: PrusaSlicer, Printer Settings, General, Firmware, untick "Supports binary G-code".
-- Keep the `binary-gcode` validation code until the new ADR lands; the existing `binary-gcode` fixture then becomes the corrupt-file fixture.
-- `scripts/slice-fixtures.ts` needs a Core One printer profile and `binary_gcode = 1` in the saved JSON to produce the fixture.
+- Replaces the old workaround (PrusaSlicer, Printer Settings, General, Firmware, untick "Supports binary G-code").
+- No WASM and no new dependency: `packages/core/src/bgcode` holds the container reader and writer, Heatshrink encoder and decoder, zlib inflate, MeatPack encoder and decoder (ported from libbgcode) and a UTF-8 codec. Verified against libbgcode's reference files and the `heatshrink2` reference bindings (LRN-002).
+- MeatPack drops inline comments, so binary output carries the tier marker as its own comment line before a bare `M104`/`M109` (ADR-0007); the report lists both lines.
+- Verification: `pnpm typecheck`, `pnpm build`, 98 tests; the built G-code worker bundle run in Node with a `self` shim decodes `coreone-binary.bgcode`, recovers the config from the object label, transforms it to the golden and emits a 164 KB `.bgcode`; the unreadable fixture yields `binary-gcode-unreadable` with no output.
 
 ## Learnings
+
+- LRN-002: 3.0 CLI profile names, the alpha CLI's missing binary export, and the libbgcode facts the codec relies on.
 
 ## Progress Log
 
 - [2026-10-18] Created from user feedback after the MVP: binary export is the default on the Core One, so the `binary-gcode` error blocks the most common new user.
+- [2026-10-18] ADR-0007 written; codec, pipeline, worker, UI, fixtures and docs done. Remaining criteria need the user: a GUI-exported `.bgcode` and a physical Core One print.

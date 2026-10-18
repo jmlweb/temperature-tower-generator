@@ -1,0 +1,13 @@
+{
+  "gcode": "coreone-binary.bgcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "notes": "Stock Core One profile (binary G-code on, ramping lift), arc fitting off, converted to .bgcode by scripts/bgcode-from-text.ts with a stand-in 16x16 QOI thumbnail, because the headless CLI renders none (ADR-0007, LRN-002)."
+}

@@ -25,9 +25,9 @@ const towerGcode = (top: number, layerHeight = 0.2, extra: (z: number) => string
   return lines.join('\n')
 }
 
-const codes = (text: string, towerConfig = config, isBinary = false) => {
+const codes = (text: string, towerConfig = config, binaryError: string | null = null) => {
   const lines = parseGcode(text)
-  return validateGcode({ motion: analyzeMotion(lines), slicer: readSlicerInfo(lines), config: towerConfig, isBinary }).map((i) => `${i.severity}:${i.code}`)
+  return validateGcode({ motion: analyzeMotion(lines), slicer: readSlicerInfo(lines), config: towerConfig, binaryError }).map((i) => `${i.severity}:${i.code}`)
 }
 
 describe('validation (ADR-0004)', () => {
@@ -35,8 +35,8 @@ describe('validation (ADR-0004)', () => {
     expect(codes(towerGcode(19))).toEqual([])
   })
 
-  it('errors on binary G-code before anything else', () => {
-    expect(codes('', config, true)).toEqual([`error:${ValidationCode.BINARY_GCODE}`])
+  it('errors on unreadable binary G-code before anything else', () => {
+    expect(codes('', config, 'Block 0 checksum mismatch')).toEqual([`error:${ValidationCode.BINARY_GCODE_UNREADABLE}`])
   })
 
   it('errors when nothing extrudes', () => {

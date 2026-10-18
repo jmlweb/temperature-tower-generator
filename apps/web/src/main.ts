@@ -1,10 +1,10 @@
-import { ConfigSource, MATERIAL_PRESETS, TOOL_VERSION, type Inspection, type ProcessResult, type TowerConfig } from '@temptower/core'
+import { ConfigSource, MATERIAL_PRESETS, TOOL_VERSION, type ProcessResult, type TowerConfig } from '@temptower/core'
 import { createConfigForm } from './config-form.ts'
 import { createCounter } from './counter.ts'
 import { el, replaceChildren } from './dom.ts'
 import { downloadBlob } from './download.ts'
 import { renderReport } from './report-view.ts'
-import { createGcodeClient, createTowerClient } from './worker-client.ts'
+import { createGcodeClient, createTowerClient, type InspectResult } from './worker-client.ts'
 import './styles.css'
 
 const counter = createCounter({ isProduction: import.meta.env.PROD, endpoint: import.meta.env.VITE_COUNTER_URL as string | undefined })
@@ -47,9 +47,10 @@ const downloadContainer = el('div', { class: 'actions' })
 let loadedFileName: string | null = null
 let lastResult: ProcessResult | null = null
 
-const describeRecovery = (inspection: Inspection, isBinary: boolean): string => {
-  if (isBinary) return 'This is binary G-code (.bgcode); the report below explains how to export ASCII G-code.'
-  const slicer = inspection.slicer.slicer === 'unknown' ? 'Slicer not recognised.' : `Sliced by ${inspection.slicer.slicer} ${inspection.slicer.version ?? ''}.`
+const describeRecovery = ({ inspection, input, binaryError }: InspectResult): string => {
+  if (binaryError !== null) return `This binary G-code (.bgcode) could not be decoded: ${binaryError}. Transform to see the report, or re-export the file.`
+  const format = input.format === 'binary' ? ` Binary G-code decoded (${input.binary?.gcodeEncoding ?? 'unknown'} encoding, ${input.binary?.gcodeCompression ?? 'none'} compression); the download will be .bgcode too.` : ''
+  const slicer = `${inspection.slicer.slicer === 'unknown' ? 'Slicer not recognised.' : `Sliced by ${inspection.slicer.slicer} ${inspection.slicer.version ?? ''}.`}${format}`
   if (!inspection.recovered) return `${slicer} No tower config found in the file name or object label: check the config above matches the STL you printed, then transform.`
   const source = inspection.recovered.source === ConfigSource.FILENAME ? 'the file name' : 'the object label in the G-code'
   return `${slicer} Tower config recovered from ${source} and loaded into the form above.`
@@ -64,9 +65,9 @@ const loadFile = async (file: File): Promise<void> => {
   uploadStatus.className = 'status'
   uploadStatus.textContent = `Reading ${file.name}…`
   try {
-    const { inspection, isBinary } = await gcode.inspect(file.name, await file.arrayBuffer())
-    if (inspection.recovered) configForm.setConfig(inspection.recovered.config)
-    uploadStatus.textContent = describeRecovery(inspection, isBinary)
+    const inspected = await gcode.inspect(file.name, await file.arrayBuffer())
+    if (inspected.inspection.recovered) configForm.setConfig(inspected.inspection.recovered.config)
+    uploadStatus.textContent = describeRecovery(inspected)
     transformButton.disabled = false
   } catch (error) {
     uploadStatus.className = 'status error'
@@ -95,14 +96,15 @@ const showResult = (result: ProcessResult): void => {
   lastResult = result
   replaceChildren(reportContainer, el('h3', {}, 'Change report'), renderReport(result.report))
   replaceChildren(downloadContainer)
-  if (result.output === null || !result.report.canDownload) {
+  if (result.outputBytes === null || !result.report.canDownload) {
     downloadContainer.append(el('p', { class: 'status error' }, 'Errors block the download. Fix the input and transform again.'))
     return
   }
-  const output = result.output
+  const output = result.outputBytes
+  const isBinary = result.report.input.format === 'binary'
   const downloadButton = el('button', { type: 'button' }, `Download ${result.outputFileName}`)
   downloadButton.addEventListener('click', () => {
-    downloadBlob(output, result.outputFileName, 'text/x-gcode')
+    downloadBlob(output.slice(), result.outputFileName, isBinary ? 'application/octet-stream' : 'text/x-gcode')
     counter.recordProcessed()
   })
   downloadContainer.append(downloadButton, el('span', { class: 'muted' }, 'Check the report above before printing.'))
@@ -153,6 +155,6 @@ app.append(
     el('section', { class: 'step' }, el('h2', {}, '1. Tower config and STL'), configForm.element, el('div', { class: 'actions' }, generateButton), stlStatus),
     el('section', { class: 'step' }, el('h2', {}, '2. Upload the sliced G-code'), dropzone, uploadStatus, el('div', { class: 'actions' }, transformButton)),
     el('section', { class: 'step' }, el('h2', {}, '3. Review and download'), reportContainer, downloadContainer),
-    el('footer', {}, `v${TOOL_VERSION}. Phase 1 supports PrusaSlicer ASCII G-code on Marlin, Prusa and Klipper firmware. Arc moves (G2/G3) are not supported yet: disable arc fitting in Print Settings > Advanced.`),
+    el('footer', {}, `v${TOOL_VERSION}. Phase 1 supports PrusaSlicer G-code, plain or binary (.bgcode), on Marlin, Prusa and Klipper firmware. Arc moves (G2/G3) are not supported yet: disable arc fitting in Print Settings > Advanced.`),
   ),
 )

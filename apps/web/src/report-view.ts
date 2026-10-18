@@ -17,6 +17,14 @@ const lineList = (title: string, lines: readonly { lineNumber: number; text: str
       : el('ol', {}, ...lines.map((line) => el('li', { value: String(line.lineNumber) }, el('code', {}, line.text)))),
   )
 
+/** Binary inputs show how they were encoded, so a firmware complaint can be traced (ADR-0007). */
+const describeInput = (input: Report['input']): string => {
+  if (input.format === 'text') return 'plain G-code'
+  if (input.binary === null) return 'binary G-code (.bgcode), not decoded'
+  const { version, checksum, gcodeCompression, gcodeEncoding, gcodeBlocks, thumbnails } = input.binary
+  return `binary G-code v${version}, ${checksum} checksums, ${gcodeBlocks} G-code blocks (${gcodeEncoding}, ${gcodeCompression}), ${thumbnails} thumbnails; output is .bgcode`
+}
+
 /** Everything ADR-0004 asks the user to see before downloading. */
 export const renderReport = (report: Report): HTMLElement => {
   const baseSource = {
@@ -35,6 +43,8 @@ export const renderReport = (report: Report): HTMLElement => {
       el('dd', {}, report.fileName),
       el('dt', {}, 'Slicer'),
       el('dd', {}, report.slicer.name === 'unknown' ? 'not recognised (Phase 1 supports PrusaSlicer)' : `${report.slicer.name} ${report.slicer.version ?? ''}`),
+      el('dt', {}, 'Input'),
+      el('dd', {}, describeInput(report.input)),
       el('dt', {}, 'Base temperature'),
       el('dd', {}, report.baseTemperature.value === null ? baseSource : `${report.baseTemperature.value} °C, ${baseSource}`),
       el('dt', {}, 'Layers'),

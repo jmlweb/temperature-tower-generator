@@ -3,12 +3,12 @@ import { typicalLayerHeight } from './motion.ts'
 import type { SlicerInfo } from './slicers/types.ts'
 import { findPreset, Material, tierTemperatures, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
 
-/** Every check is in the `error` or `warning` list of ADR-0004. */
+/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 for binary input. */
 export const ValidationCode = {
   NO_EXTRUSION: 'no-extrusion',
   VARIABLE_LAYER_HEIGHT: 'variable-layer-height',
   MULTIPLE_OBJECTS: 'multiple-objects',
-  BINARY_GCODE: 'binary-gcode',
+  BINARY_GCODE_UNREADABLE: 'binary-gcode-unreadable',
   ARC_MOVES: 'arc-moves',
   HEIGHT_MISMATCH: 'height-mismatch',
   HEIGHT_OFF_BY_ONE_LAYER: 'height-off-by-one-layer',
@@ -31,7 +31,8 @@ export interface ValidationInput {
   readonly motion: MotionAnalysis
   readonly slicer: SlicerInfo
   readonly config: TowerConfig
-  readonly isBinary: boolean
+  /** Decode failure of a binary input (ADR-0007), or null. */
+  readonly binaryError: string | null
 }
 
 const LAYER_HEIGHT_TOLERANCE = 0.0015
@@ -40,9 +41,9 @@ const warning = (code: ValidationCode, message: string): ValidationIssue => ({ s
 
 const formatZ = (z: number): string => z.toFixed(2)
 
-export const validateGcode = ({ motion, slicer, config, isBinary }: ValidationInput): readonly ValidationIssue[] => {
-  if (isBinary) {
-    return [error(ValidationCode.BINARY_GCODE, 'Binary G-code (.bgcode) is not supported. Export ASCII G-code from PrusaSlicer (Printer Settings > General > Supports binary G-code: off).')]
+export const validateGcode = ({ motion, slicer, config, binaryError }: ValidationInput): readonly ValidationIssue[] => {
+  if (binaryError !== null) {
+    return [error(ValidationCode.BINARY_GCODE_UNREADABLE, `Binary G-code could not be decoded: ${binaryError}. Re-export the file from PrusaSlicer, or export plain G-code.`)]
   }
   const issues: ValidationIssue[] = []
   const { layers } = motion
