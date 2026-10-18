@@ -34,7 +34,7 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
   const end = numberInput('endTemperature', 'Top tier °C', '1', '100')
   const step = numberInput('step', 'Step °C', '1', '1')
   const blockHeight = numberInput('blockHeight', 'Block height mm', '0.5', '6')
-  const baseHeight = numberInput('baseHeight', 'Base height mm', '0.5', '1')
+  const baseHeight = numberInput('baseHeight', 'Base height mm', '0.1', '1')
   const wait = el('input', { type: 'checkbox', name: 'waitForTemperature', id: 'config-wait' })
   const summary = el('p', { class: 'summary', 'aria-live': 'polite' })
   const problems = el('ul', { class: 'problems', 'aria-live': 'polite' })

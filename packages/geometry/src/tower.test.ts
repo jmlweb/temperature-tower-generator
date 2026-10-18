@@ -1,10 +1,10 @@
-import { Material, tierBoundaryZ, tierTemperature, towerHeight, type TowerConfig } from '@temptower/core'
+import { MATERIAL_PRESETS, Material, findPreset, tierBoundaryZ, tierCount, tierTemperature, towerHeight, type TowerConfig } from '@temptower/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { textBitmap } from './font.ts'
 import { loadManifold, type ManifoldModule } from './manifold.ts'
-import { isManifold, meshHeight, readLabel } from './mesh-checks.ts'
+import { isManifold, meshBounds, meshHeight, readLabel } from './mesh-checks.ts'
 import { readBinaryStl, writeBinaryStl } from './stl.ts'
-import { buildTower } from './tower.ts'
+import { TOWER_DIMENSIONS, buildTower, towerWidth } from './tower.ts'
 
 const config: TowerConfig = {
   material: Material.PLA,
@@ -38,6 +38,32 @@ describe('parametric tower (ADR-0006)', () => {
       expect(label.zTop).toBeLessThanOrEqual(tierBoundaryZ(config, label.tier + 1))
       expect(readLabel(tower.mesh, label), `tier ${label.tier}`).toEqual(textBitmap(label.text))
     }
+  })
+
+  it('lays the tiers out 47 mm wide at 10 mm blocks, like the Smart Compact tower, and narrower when the eave is capped', () => {
+    expect(towerWidth(10)).toBe(47)
+    expect(towerWidth(6)).toBe(43)
+  })
+
+  it('stays manifold at full height for the fixture config and every preset', () => {
+    const fixture: TowerConfig = { ...config, startTemperature: 230, endTemperature: 220, blockHeight: 6, baseHeight: 1 }
+    for (const candidate of [fixture, ...MATERIAL_PRESETS.map((preset) => preset.config)]) {
+      const tower = buildTower(wasm, candidate)
+      expect(isManifold(tower.mesh), `${candidate.material} h${candidate.blockHeight}`).toBe(true)
+      expect(meshHeight(tower.mesh)).toBe(towerHeight(candidate))
+      expect(tower.labels).toHaveLength(tierCount(candidate))
+    }
+  })
+
+  it('keeps every feature inside the base plate footprint', () => {
+    const pla = findPreset(Material.PLA).config
+    const { min, max } = meshBounds(buildTower(wasm, pla).mesh)
+    const D = TOWER_DIMENSIONS
+    expect(min[0]).toBeCloseTo(-D.plateSideMargin, 3)
+    expect(max[0]).toBeCloseTo(towerWidth(pla.blockHeight) + D.plateSideMargin, 3)
+    expect(min[1]).toBeCloseTo(-D.plateFrontMargin, 3)
+    expect(max[1]).toBeCloseTo(D.depth + D.plateFrontMargin, 3)
+    expect(min[2]).toBe(0)
   })
 
   it('survives a binary STL round trip as a manifold mesh', () => {

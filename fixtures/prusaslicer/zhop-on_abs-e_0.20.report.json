@@ -38,7 +38,7 @@
       "boundaryZ": 1,
       "layerIndex": 4,
       "layerZ": 1,
-      "lineIndex": 1267
+      "lineIndex": 1466
     },
     {
       "tier": 1,
@@ -46,7 +46,7 @@
       "boundaryZ": 7,
       "layerIndex": 34,
       "layerZ": 7,
-      "lineIndex": 11165
+      "lineIndex": 13930
     },
     {
       "tier": 2,
@@ -54,20 +54,20 @@
       "boundaryZ": 13,
       "layerIndex": 64,
       "layerZ": 13,
-      "lineIndex": 20117
+      "lineIndex": 26005
     }
   ],
   "inserted": [
     {
-      "lineNumber": 1268,
+      "lineNumber": 1467,
       "text": "M104 S230 ; [temptower] tier 0"
     },
     {
-      "lineNumber": 11166,
+      "lineNumber": 13931,
       "text": "M104 S225 ; [temptower] tier 1"
     },
     {
-      "lineNumber": 20118,
+      "lineNumber": 26006,
       "text": "M104 S220 ; [temptower] tier 2"
     }
   ],
