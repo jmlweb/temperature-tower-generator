@@ -1,0 +1,19 @@
+{
+  "gcode": "coreone-gui-arc-moves.bgcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 190,
+    "step": 5,
+    "blockHeight": 10,
+    "baseHeight": 2,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "errors": [
+      "arc-moves"
+    ]
+  },
+  "source": "Exported from the PrusaSlicer 2.9.6 GUI with the stock Prusa CORE One 0.4 HF profile (binary G-code on, four thumbnails, arc fitting on) by the project owner on 2026-10-18.",
+  "notes": "Real GUI export: exercises the decoder on 34 Heatshrink blocks with references into the zero-filled initial history. Blocked by arc-moves until RPT-001 is decided."
+}

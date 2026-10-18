@@ -53,8 +53,13 @@ export const heatshrinkDecode = (input: Uint8Array, { windowBits, lookaheadBits 
     if (totalBits - bitPos < backrefBits) break
     const distance = readBits(windowBits) + 1
     const length = readBits(lookaheadBits) + 1
-    if (distance > outLength) throw new BgcodeError('heatshrink-backref', `Heatshrink back-reference of ${distance} bytes at output offset ${outLength}`)
-    for (let i = 0; i < length; i += 1) push(out[outLength - distance]!)
+    if (distance > 1 << windowBits) throw new BgcodeError('heatshrink-backref', `Heatshrink back-reference of ${distance} bytes exceeds the ${1 << windowBits}-byte history`)
+    // The reference decoder's history buffer starts zero-filled, and the reference encoder matches
+    // against it (MeatPack packs "00" as 0x00), so a reference before the first output byte reads zeros.
+    for (let i = 0; i < length; i += 1) {
+      const source = outLength - distance
+      push(source < 0 ? 0 : out[source]!)
+    }
   }
   return out.subarray(0, outLength)
 }

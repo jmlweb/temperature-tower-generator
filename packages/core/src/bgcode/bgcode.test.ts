@@ -83,8 +83,17 @@ describe('heatshrink', () => {
     expect(same(heatshrinkDecode(packed, HEATSHRINK_12_4, input.length), input)).toBe(true)
   })
 
-  it('rejects a back-reference before the start of the output', () => {
-    expect(() => heatshrinkDecode(Uint8Array.of(0x00, 0x00, 0x10), HEATSHRINK_12_4)).toThrow(BgcodeError)
+  it('reads zeros for a back-reference into the zero-filled initial window, like the reference decoder', () => {
+    // backref: distance 2 (index 1), length 2 (count 1), then literal 'a': 0 000000000001 0001 1 01100001
+    const bits = ['0', '000000000001', '0001', '1', '01100001'].join('')
+    const padded = bits.padEnd(Math.ceil(bits.length / 8) * 8, '0')
+    const bytes = Uint8Array.from(padded.match(/.{8}/g)!.map((byte) => Number.parseInt(byte, 2)))
+    expect(Array.from(heatshrinkDecode(bytes, HEATSHRINK_12_4))).toEqual([0, 0, 0x61])
+  })
+
+  it('round-trips data that starts with packed "00" bytes through the reference-style zero window', () => {
+    const input = Uint8Array.from([0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 4])
+    expect(same(heatshrinkDecode(heatshrinkEncode(input, HEATSHRINK_12_4), HEATSHRINK_12_4), input)).toBe(true)
   })
 })
 
