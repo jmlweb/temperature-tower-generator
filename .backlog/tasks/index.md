@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 2 |
+| Pending | 3 |
 | Active | 0 |
 | Blocked | 0 |
 | Complete | 5 |
@@ -19,6 +19,7 @@ _No active tasks._
 |----|-------|----------|------|---------|
 | TSK-001 | Validate PrusaSlicer demand with a hand-made demo | P1 | validation, community | 2026-10-18 |
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
+| TSK-008 | User transforms binary G-code (.bgcode) from Core One and MK4-class printers | P1 | gcode, prusaslicer, onboarding | 2026-10-18 |
 
 ## Recently Completed
 
