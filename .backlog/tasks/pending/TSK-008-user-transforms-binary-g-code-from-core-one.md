@@ -38,7 +38,7 @@ Out of scope: writing binary G-code for a plain-text input, and the Prusa Connec
 - [x] The report shows the binary format version, block compression and encoding, and the download delivers `<base>_temptower.bgcode`
 - [x] A plain `.gcode` upload downloads nothing extra: the codec is pure TypeScript inside the G-code worker bundle (about 10 kB), no WASM at all
 - [x] Unsupported or corrupt `.bgcode` produces a clear error in the report and no output file (`binary-gcode-unreadable` fixture)
-- [x] A `.bgcode` exported from the PrusaSlicer GUI with a Core One profile decodes (`fixtures/prusaslicer/coreone-gui-arc-moves.bgcode`, PrusaSlicer 2.9.6, 34 blocks, 4 thumbnails; config recovered from the file name, 460 layers, 92 mm). Its transform is blocked by `arc-moves` because the stock profile has arc fitting on (RPT-001)
+- [x] A `.bgcode` exported from the PrusaSlicer GUI with a Core One profile decodes and transforms (`fixtures/prusaslicer/coreone-gui.bgcode`, PrusaSlicer 2.9.6, 34 blocks, 4 thumbnails; config recovered from the file name, 460 layers, 92 mm, 9 tiers placed). Arcs from the stock profile are ordinary moves since ADR-0008
 - [ ] One physical print on a Core One from the transformed `.bgcode` reaches every tier at its temperature (user gate, can land after launch)
 
 ## Notes
@@ -56,4 +56,5 @@ Out of scope: writing binary G-code for a plain-text input, and the Prusa Connec
 
 - [2026-10-18] Created from user feedback after the MVP: binary export is the default on the Core One, so the `binary-gcode` error blocks the most common new user.
 - [2026-10-18] ADR-0007 written; codec, pipeline, worker, UI, fixtures and docs done. Remaining criteria need the user: a GUI-exported `.bgcode` and a physical Core One print.
-- [2026-10-18] First real GUI export failed with `Heatshrink back-reference of 50 bytes at output offset 48`: the reference decoder's history starts zero-filled and the slicer's encoder matches against it. Fixed in `heatshrink.ts`, file added as a fixture. Only `arc-moves` now stands between a Core One user and a download.
+- [2026-10-18] First real GUI export failed with `Heatshrink back-reference of 50 bytes at output offset 48`: the reference decoder's history starts zero-filled and the slicer's encoder matches against it. Fixed in `heatshrink.ts`, file added as a fixture. Only `arc-moves` then stood between a Core One user and a download.
+- [2026-10-18] ADR-0008 lifts the arc error (RPT-001 resolved); the GUI export now transforms to a golden and downloads as `.bgcode`. Left: the physical Core One print.

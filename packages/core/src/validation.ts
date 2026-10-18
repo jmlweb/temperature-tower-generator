@@ -3,13 +3,12 @@ import { typicalLayerHeight } from './motion.ts'
 import type { SlicerInfo } from './slicers/types.ts'
 import { findPreset, Material, tierTemperatures, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
 
-/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 for binary input. */
+/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 (binary input) and ADR-0008 (arcs allowed). */
 export const ValidationCode = {
   NO_EXTRUSION: 'no-extrusion',
   VARIABLE_LAYER_HEIGHT: 'variable-layer-height',
   MULTIPLE_OBJECTS: 'multiple-objects',
   BINARY_GCODE_UNREADABLE: 'binary-gcode-unreadable',
-  ARC_MOVES: 'arc-moves',
   HEIGHT_MISMATCH: 'height-mismatch',
   HEIGHT_OFF_BY_ONE_LAYER: 'height-off-by-one-layer',
   TEMPERATURE_OUTSIDE_PRESET: 'temperature-outside-preset',
@@ -51,11 +50,6 @@ export const validateGcode = ({ motion, slicer, config, binaryError }: Validatio
   if (!motion.hasExtrusion || layers.length === 0) {
     issues.push(error(ValidationCode.NO_EXTRUSION, 'No extruding moves found, so no layers could be detected.'))
     return issues
-  }
-
-  if (motion.arcLineIndexes.length > 0) {
-    const first = motion.arcLineIndexes[0]! + 1
-    issues.push(error(ValidationCode.ARC_MOVES, `Arc moves (G2/G3) are not supported yet; the first one is on line ${first}. Set Print Settings > Advanced > Arc fitting to Disabled and re-slice.`))
   }
 
   const heights = layers.slice(1).filter((layer) => !layer.descending).map((layer) => layer.height)

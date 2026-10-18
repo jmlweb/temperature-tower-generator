@@ -90,7 +90,7 @@ const variants: readonly Variant[] = [
       ),
     ),
   ),
-  { name: 'arc-moves', layer: '0.20', zhop: 0.4, relativeE: true, arcs: true, expect: { errors: ['arc-moves'] }, notes: 'Arc fitting on; PrusaSlicer 3.0 enables it by default.' },
+  { name: 'arc-moves', layer: '0.20', zhop: 0.4, relativeE: true, arcs: true, notes: 'Arc fitting on, as PrusaSlicer 2.9.6 Core One and all 3.0 stock profiles have it; arcs are ordinary moves since ADR-0008.' },
   { name: 'multiple-objects', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, expect: { errors: ['multiple-objects'] } },
   { name: 'sequential-printing', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, completeObjects: true, expect: { errors: ['multiple-objects'] } },
   {

@@ -155,6 +155,6 @@ app.append(
     el('section', { class: 'step' }, el('h2', {}, '1. Tower config and STL'), configForm.element, el('div', { class: 'actions' }, generateButton), stlStatus),
     el('section', { class: 'step' }, el('h2', {}, '2. Upload the sliced G-code'), dropzone, uploadStatus, el('div', { class: 'actions' }, transformButton)),
     el('section', { class: 'step' }, el('h2', {}, '3. Review and download'), reportContainer, downloadContainer),
-    el('footer', {}, `v${TOOL_VERSION}. Phase 1 supports PrusaSlicer G-code, plain or binary (.bgcode), on Marlin, Prusa and Klipper firmware. Arc moves (G2/G3) are not supported yet: disable arc fitting in Print Settings > Advanced.`),
+    el('footer', {}, `v${TOOL_VERSION}. Phase 1 supports PrusaSlicer G-code, plain or binary (.bgcode), with or without arc fitting, on Marlin, Prusa and Klipper firmware.`),
   ),
 )

@@ -43,8 +43,8 @@ describe('validation (ADR-0004)', () => {
     expect(codes('G1 Z0.2\nG1 X10')).toEqual([`error:${ValidationCode.NO_EXTRUSION}`])
   })
 
-  it('errors on arc moves', () => {
-    expect(codes(towerGcode(19, 0.2, (z) => (z === 1 ? ['G2 X12 Y12 I1 J0 E0.1'] : [])))).toContain(`error:${ValidationCode.ARC_MOVES}`)
+  it('accepts arc moves as ordinary moves (ADR-0008)', () => {
+    expect(codes(towerGcode(19, 0.2, (z) => (z === 1 ? ['G2 X12 Y12 I1 J0 E0.1'] : [])))).toEqual([])
   })
 
   it('errors on variable layer height', () => {

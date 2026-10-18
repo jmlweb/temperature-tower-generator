@@ -32,9 +32,9 @@ Slicer-Agnostic Temperature Tower Generator is a free, 100% client-side browser 
   - All other input lines appear byte-for-byte.
 - Only `M104`/`M109` lines (including `T`-indexed variants) whose layer Z is at or above the first tier boundary are neutralized. Start G-code and lines below the first tier boundary are kept. A fixture covers both cases (ADR-0002).
 - Layer boundaries come from motion state; slicer markers never override them and a disagreement emits a warning (ADR-0003).
-- Every supported G-code feature (Z-hop, relative E, `G92 E0`) has at least one fixture with a golden output (ADR-0003).
+- Every supported G-code feature (Z-hop, relative E, `G92 E0`, arcs) has at least one fixture with a golden output (ADR-0003, ADR-0008).
 - The slicer reader registry in `packages/core` holds only the PrusaSlicer reader until Phase 2 starts. Phase 2 starts after the first external failing-G-code report is triaged (ADR-0003).
-- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
+- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007, and the arc line removed, ADR-0008), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
 - The download control is reachable only after the report renders (ADR-0004).
 - Output G-code starts with a `; [temptower]` header block holding the tool version, tower config and change summary (ADR-0004).
 - A `.bgcode` upload is decoded in the worker by the pure TypeScript codec in `packages/core/src/bgcode`; the transform runs on the decoded text, and the output is re-encoded with every non-G-code block copied byte-for-byte and the input's G-code compression and encoding (ADR-0007).

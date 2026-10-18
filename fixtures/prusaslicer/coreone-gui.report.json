@@ -1,0 +1,237 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "coreone-gui.bgcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "2.9.6"
+  },
+  "input": {
+    "format": "binary",
+    "binary": {
+      "version": 1,
+      "checksum": "crc32",
+      "gcodeCompression": "heatshrink-12-4",
+      "gcodeEncoding": "meatpack-comments",
+      "gcodeBlocks": 34,
+      "thumbnails": 4
+    }
+  },
+  "baseTemperature": {
+    "value": 210,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 190,
+    "step": 5,
+    "blockHeight": 10,
+    "baseHeight": 2,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to190_step5_h10_b2_m104",
+  "layers": {
+    "count": 460,
+    "typicalHeight": 0.2,
+    "maxZ": 92,
+    "expectedHeight": 92
+  },
+  "errors": [],
+  "warnings": [],
+  "tiers": [
+    {
+      "tier": 0,
+      "temperature": 230,
+      "boundaryZ": 2,
+      "layerIndex": 9,
+      "layerZ": 2,
+      "lineIndex": 2519
+    },
+    {
+      "tier": 1,
+      "temperature": 225,
+      "boundaryZ": 12,
+      "layerIndex": 59,
+      "layerZ": 12,
+      "lineIndex": 13715
+    },
+    {
+      "tier": 2,
+      "temperature": 220,
+      "boundaryZ": 22,
+      "layerIndex": 109,
+      "layerZ": 22,
+      "lineIndex": 24114
+    },
+    {
+      "tier": 3,
+      "temperature": 215,
+      "boundaryZ": 32,
+      "layerIndex": 159,
+      "layerZ": 32,
+      "lineIndex": 34742
+    },
+    {
+      "tier": 4,
+      "temperature": 210,
+      "boundaryZ": 42,
+      "layerIndex": 209,
+      "layerZ": 42,
+      "lineIndex": 44976
+    },
+    {
+      "tier": 5,
+      "temperature": 205,
+      "boundaryZ": 52,
+      "layerIndex": 259,
+      "layerZ": 52,
+      "lineIndex": 55461
+    },
+    {
+      "tier": 6,
+      "temperature": 200,
+      "boundaryZ": 62,
+      "layerIndex": 309,
+      "layerZ": 62,
+      "lineIndex": 66202
+    },
+    {
+      "tier": 7,
+      "temperature": 195,
+      "boundaryZ": 72,
+      "layerIndex": 359,
+      "layerZ": 72,
+      "lineIndex": 77139
+    },
+    {
+      "tier": 8,
+      "temperature": 190,
+      "boundaryZ": 82,
+      "layerIndex": 409,
+      "layerZ": 82,
+      "lineIndex": 87525
+    }
+  ],
+  "inserted": [
+    {
+      "lineNumber": 2520,
+      "text": "; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 2520,
+      "text": "M104 S230"
+    },
+    {
+      "lineNumber": 13716,
+      "text": "; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 13716,
+      "text": "M104 S225"
+    },
+    {
+      "lineNumber": 24115,
+      "text": "; [temptower] tier 2"
+    },
+    {
+      "lineNumber": 24115,
+      "text": "M104 S220"
+    },
+    {
+      "lineNumber": 34743,
+      "text": "; [temptower] tier 3"
+    },
+    {
+      "lineNumber": 34743,
+      "text": "M104 S215"
+    },
+    {
+      "lineNumber": 44977,
+      "text": "; [temptower] tier 4"
+    },
+    {
+      "lineNumber": 44977,
+      "text": "M104 S210"
+    },
+    {
+      "lineNumber": 55462,
+      "text": "; [temptower] tier 5"
+    },
+    {
+      "lineNumber": 55462,
+      "text": "M104 S205"
+    },
+    {
+      "lineNumber": 66203,
+      "text": "; [temptower] tier 6"
+    },
+    {
+      "lineNumber": 66203,
+      "text": "M104 S200"
+    },
+    {
+      "lineNumber": 77140,
+      "text": "; [temptower] tier 7"
+    },
+    {
+      "lineNumber": 77140,
+      "text": "M104 S195"
+    },
+    {
+      "lineNumber": 87526,
+      "text": "; [temptower] tier 8"
+    },
+    {
+      "lineNumber": 87526,
+      "text": "M104 S190"
+    }
+  ],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 210
+    },
+    {
+      "z": 2,
+      "temperature": 230
+    },
+    {
+      "z": 12,
+      "temperature": 225
+    },
+    {
+      "z": 22,
+      "temperature": 220
+    },
+    {
+      "z": 32,
+      "temperature": 215
+    },
+    {
+      "z": 42,
+      "temperature": 210
+    },
+    {
+      "z": 52,
+      "temperature": 205
+    },
+    {
+      "z": 62,
+      "temperature": 200
+    },
+    {
+      "z": 72,
+      "temperature": 195
+    },
+    {
+      "z": 82,
+      "temperature": 190
+    },
+    {
+      "z": 92,
+      "temperature": 190
+    }
+  ],
+  "canDownload": true
+}

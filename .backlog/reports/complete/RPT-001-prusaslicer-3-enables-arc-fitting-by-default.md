@@ -2,11 +2,11 @@
 id: RPT-001
 title: PrusaSlicer 3.0 enables arc fitting by default, so every default slice hits the Phase 1 arc error
 type: finding
-status: pending
+status: resolved
 priority: P2
 tags: [core, validation, prusaslicer]
 created: 2026-10-18
-related: [TSK-006, ADR-0003]
+related: [TSK-006, TSK-008, ADR-0003, ADR-0008]
 ---
 
 # PrusaSlicer 3.0 enables arc fitting by default
@@ -24,3 +24,7 @@ If 3.0 ships with this default, PrusaSlicer 3.0 users get the `arc-moves` error 
 ## Suggested next step
 
 Supporting arcs in the motion state is small: `G2`/`G3` already update XYZE in `packages/core/src/motion.ts`; only the validation gate turns them into an error. Decide before launch whether to add an ADR that moves arc support into Phase 1, or to keep the error and document the slicer setting in the launch post.
+
+## Resolution
+
+- [2026-10-18] A real Core One export from PrusaSlicer 2.9.6 confirmed the default (`arc_fitting = emit_center`) is not limited to the 3.0 alpha. ADR-0008 makes arcs ordinary moves; the `arc-moves` error is gone and the fixture became a passing one.

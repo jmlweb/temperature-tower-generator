@@ -29,16 +29,48 @@
     "maxZ": 19,
     "expectedHeight": 19
   },
-  "errors": [
+  "errors": [],
+  "warnings": [],
+  "tiers": [
     {
-      "severity": "error",
-      "code": "arc-moves",
-      "message": "Arc moves (G2/G3) are not supported yet; the first one is on line 393. Set Print Settings > Advanced > Arc fitting to Disabled and re-slice."
+      "tier": 0,
+      "temperature": 230,
+      "boundaryZ": 1,
+      "layerIndex": 4,
+      "layerZ": 1,
+      "lineIndex": 1208
+    },
+    {
+      "tier": 1,
+      "temperature": 225,
+      "boundaryZ": 7,
+      "layerIndex": 34,
+      "layerZ": 7,
+      "lineIndex": 10716
+    },
+    {
+      "tier": 2,
+      "temperature": 220,
+      "boundaryZ": 13,
+      "layerIndex": 64,
+      "layerZ": 13,
+      "lineIndex": 19259
     }
   ],
-  "warnings": [],
-  "tiers": [],
-  "inserted": [],
+  "inserted": [
+    {
+      "lineNumber": 1209,
+      "text": "M104 S230 ; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 10717,
+      "text": "M104 S225 ; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 19260,
+      "text": "M104 S220 ; [temptower] tier 2"
+    }
+  ],
   "neutralized": [],
   "chart": [
     {
@@ -46,9 +78,21 @@
       "temperature": 215
     },
     {
+      "z": 1,
+      "temperature": 230
+    },
+    {
+      "z": 7,
+      "temperature": 225
+    },
+    {
+      "z": 13,
+      "temperature": 220
+    },
+    {
       "z": 19,
-      "temperature": 215
+      "temperature": 220
     }
   ],
-  "canDownload": false
+  "canDownload": true
 }

@@ -8,10 +8,5 @@
     "baseHeight": 1,
     "waitForTemperature": false
   },
-  "expect": {
-    "errors": [
-      "arc-moves"
-    ]
-  },
-  "notes": "Arc fitting on; PrusaSlicer 3.0 enables it by default."
+  "notes": "Arc fitting on, as PrusaSlicer 2.9.6 Core One and all 3.0 stock profiles have it; arcs are ordinary moves since ADR-0008."
 }
