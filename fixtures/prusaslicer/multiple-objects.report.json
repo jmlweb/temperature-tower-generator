@@ -1,0 +1,50 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "multiple-objects.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "3.0.0-alpha12"
+  },
+  "baseTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [
+    {
+      "severity": "error",
+      "code": "multiple-objects",
+      "message": "The file contains 2 objects (temptower_v1_PLA_230to220_step5_h6_b1_m104.stl (Instance 1), temptower_v1_PLA_230to220_step5_h6_b1_m104.stl (Instance 2)). Slice the tower alone."
+    }
+  ],
+  "warnings": [],
+  "tiers": [],
+  "inserted": [],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 215
+    },
+    {
+      "z": 19,
+      "temperature": 215
+    }
+  ],
+  "canDownload": false
+}

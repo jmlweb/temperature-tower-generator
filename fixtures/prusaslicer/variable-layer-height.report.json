@@ -1,0 +1,50 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "variable-layer-height.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "2.8.1"
+  },
+  "baseTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [
+    {
+      "severity": "error",
+      "code": "variable-layer-height",
+      "message": "Layer height varies (40 layers differ from 0.2 mm). Variable layer height is not supported."
+    }
+  ],
+  "warnings": [],
+  "tiers": [],
+  "inserted": [],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 215
+    },
+    {
+      "z": 19,
+      "temperature": 215
+    }
+  ],
+  "canDownload": false
+}

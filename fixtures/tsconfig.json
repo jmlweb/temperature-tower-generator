@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "paths": {
+      "@temptower/core": ["../packages/core/src/index.ts"],
+      "@temptower/geometry": ["../packages/geometry/src/index.ts"]
+    }
+  },
+  "include": ["*.ts"]
+}

@@ -1,0 +1,18 @@
+{
+  "gcode": "zhop-on_rel-e_0.20.gcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 240,
+    "endTemperature": 230,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "warnings": [
+      "temperature-outside-preset"
+    ]
+  },
+  "notes": "Same sliced file as zhop-on_rel-e_0.20 with tiers above the PLA preset range."
+}

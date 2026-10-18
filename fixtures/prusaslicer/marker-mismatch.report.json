@@ -1,0 +1,100 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "marker-mismatch.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "2.8.1"
+  },
+  "baseTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "code": "marker-mismatch",
+      "message": "Slicer layer markers (96) disagree with the 95 layers detected from motion. Motion wins; check the chart."
+    }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "temperature": 230,
+      "boundaryZ": 1,
+      "layerIndex": 4,
+      "layerZ": 1,
+      "lineIndex": 44
+    },
+    {
+      "tier": 1,
+      "temperature": 225,
+      "boundaryZ": 7,
+      "layerIndex": 34,
+      "layerZ": 7,
+      "lineIndex": 284
+    },
+    {
+      "tier": 2,
+      "temperature": 220,
+      "boundaryZ": 13,
+      "layerIndex": 64,
+      "layerZ": 13,
+      "lineIndex": 524
+    }
+  ],
+  "inserted": [
+    {
+      "lineNumber": 45,
+      "text": "M104 S230 ; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 285,
+      "text": "M104 S225 ; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 525,
+      "text": "M104 S220 ; [temptower] tier 2"
+    }
+  ],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 215
+    },
+    {
+      "z": 1,
+      "temperature": 230
+    },
+    {
+      "z": 7,
+      "temperature": 225
+    },
+    {
+      "z": 13,
+      "temperature": 220
+    },
+    {
+      "z": 19,
+      "temperature": 220
+    }
+  ],
+  "canDownload": true
+}

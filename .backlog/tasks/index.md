@@ -4,10 +4,10 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 7 |
+| Pending | 2 |
 | Active | 0 |
 | Blocked | 0 |
-| Complete | 0 |
+| Complete | 5 |
 
 ## Active Tasks
 
@@ -18,14 +18,14 @@ _No active tasks._
 | ID | Title | Priority | Tags | Created |
 |----|-------|----------|------|---------|
 | TSK-001 | Validate PrusaSlicer demand with a hand-made demo | P1 | validation, community | 2026-10-18 |
-| TSK-002 | User transforms PrusaSlicer G-code with a manually entered config | P2 | core, web, skeleton | 2026-10-18 |
-| TSK-003 | User downloads a labelled tower STL that matches the config | P2 | geometry, web | 2026-10-18 |
-| TSK-004 | User reviews a change report before download | P2 | validation, web | 2026-10-18 |
-| TSK-005 | Config is recovered automatically from the uploaded G-code | P3 | core, ux | 2026-10-18 |
-| TSK-006 | Correct towers for all common PrusaSlicer profile variants | P3 | core, fixtures | 2026-10-18 |
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
 
 ## Recently Completed
 
 | ID | Title | Completed |
 |----|-------|-----------|
+| TSK-002 | User transforms PrusaSlicer G-code with a manually entered config | 2026-10-18 |
+| TSK-003 | User downloads a labelled tower STL that matches the config | 2026-10-18 |
+| TSK-004 | User reviews a change report before download | 2026-10-18 |
+| TSK-005 | Config is recovered automatically from the uploaded G-code | 2026-10-18 |
+| TSK-006 | Correct towers for all common PrusaSlicer profile variants | 2026-10-18 |

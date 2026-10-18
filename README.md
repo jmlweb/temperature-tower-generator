@@ -1,0 +1,25 @@
+# Slicer-Agnostic Temperature Tower Generator
+
+A free, 100% client-side browser tool for PrusaSlicer users tuning a new filament.
+
+1. Pick a material preset and a temperature range; download a labelled tower STL.
+2. Slice the STL in PrusaSlicer with your own profile.
+3. Upload the G-code; the page inserts one temperature command per tier, shows every change (temperature-vs-Z chart, inserted and neutralized lines, warnings) and only then offers the download.
+
+Nothing leaves your device. The only network request is an optional anonymous "file processed" counter in production builds (see `docs/adr/0001-client-side-only-processing.md`).
+
+## Development
+
+```sh
+pnpm install
+pnpm dev        # Vite dev server
+pnpm test       # unit, property, geometry and fixture suites
+pnpm typecheck
+pnpm build      # static site in apps/web/dist
+```
+
+See `AGENTS.md` for the layout, the fixture workflow and the project rules, and `docs/` for the evaluation and the architecture decisions.
+
+## Status
+
+Phase 1 (PrusaSlicer, ASCII G-code, Marlin/Prusa/Klipper dialect). Arc moves (`G2`/`G3`) are rejected with an error; disable arc fitting in Print Settings > Advanced before slicing.

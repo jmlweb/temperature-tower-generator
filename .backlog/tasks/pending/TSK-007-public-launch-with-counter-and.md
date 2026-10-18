@@ -20,7 +20,7 @@ depends-on: [TSK-001, TSK-002, TSK-003, TSK-004, TSK-005, TSK-006]
 ## Acceptance Criteria
 
 - [ ] One physical tower printed from PrusaSlicer output with labels matching tiers, photo in the release notes
-- [ ] Counter event fires once per download and never in dev or test builds
+- [x] Counter event fires once per download and never in dev or test builds
 - [ ] Static site deployed and launch posts published on the Prusa forum and r/prusa3d by 2027-01-15
 
 ## Notes
@@ -30,3 +30,4 @@ depends-on: [TSK-001, TSK-002, TSK-003, TSK-004, TSK-005, TSK-006]
 ## Progress Log
 
 - [2026-10-18] Created
+- [2026-10-18] Counter beacon implemented (`apps/web/src/counter.ts`, policy test proves no events in dev or test builds, fires once per download click in `main.ts`). Static build works (`pnpm build`). Physical print, deployment and launch posts still need the user.

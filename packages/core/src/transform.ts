@@ -1,0 +1,127 @@
+import { encodeTowerConfigName } from './filename-codec.ts'
+import type { GcodeLine } from './gcode-lines.ts'
+import type { Layer, MotionAnalysis } from './motion.ts'
+import { tierBoundaryZ, tierCount, tierTemperature, Z_EPSILON, type TowerConfig } from './tower-config.ts'
+import { MARKER, TOOL_NAME, TOOL_VERSION } from './version.ts'
+
+export interface TierPlacement {
+  readonly tier: number
+  readonly temperature: number
+  readonly boundaryZ: number
+  readonly layerIndex: number | null
+  readonly layerZ: number | null
+  /** Input line the tier command is inserted before, or null when no layer reaches the boundary. */
+  readonly lineIndex: number | null
+}
+
+export type Change =
+  | { readonly kind: 'header'; readonly text: string }
+  | { readonly kind: 'insert'; readonly lineIndex: number; readonly tier: number; readonly text: string }
+  | { readonly kind: 'neutralize'; readonly lineIndex: number; readonly original: string; readonly text: string }
+
+export interface TransformResult {
+  readonly text: string
+  readonly changes: readonly Change[]
+  readonly tiers: readonly TierPlacement[]
+}
+
+/** Maps each tier to the first layer at or above its boundary. Shared formula from tower-config (ADR-0005). */
+export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readonly TierPlacement[] => {
+  const placements: TierPlacement[] = []
+  let searchFrom = 0
+  for (let tier = 0; tier < tierCount(config); tier += 1) {
+    const boundaryZ = tierBoundaryZ(config, tier)
+    let found: Layer | null = null
+    for (let i = searchFrom; i < layers.length; i += 1) {
+      const layer = layers[i]!
+      if (layer.z >= boundaryZ - Z_EPSILON) {
+        found = layer
+        searchFrom = i + 1
+        break
+      }
+    }
+    placements.push({
+      tier,
+      temperature: tierTemperature(config, tier),
+      boundaryZ,
+      layerIndex: found?.index ?? null,
+      layerZ: found?.z ?? null,
+      lineIndex: found?.firstLineIndex ?? null,
+    })
+  }
+  return placements
+}
+
+export const tierCommand = (config: TowerConfig, tier: number): string =>
+  `${config.waitForTemperature ? 'M109' : 'M104'} S${tierTemperature(config, tier)} ${MARKER} tier ${tier}`
+
+export const NEUTRALIZED_PREFIX = `${MARKER} neutralized: `
+
+const buildHeader = (config: TowerConfig, insertedCount: number, neutralizedCount: number): readonly string[] => {
+  const n = tierCount(config)
+  const first = tierTemperature(config, 0)
+  const last = tierTemperature(config, n - 1)
+  return [
+    `${MARKER} ${TOOL_NAME} v${TOOL_VERSION}`,
+    `${MARKER} config: ${encodeTowerConfigName(config)}`,
+    `${MARKER} tiers: ${n} x ${config.blockHeight} mm from Z=${tierBoundaryZ(config, 0)} (${first} to ${last} C, step ${config.step}, ${config.waitForTemperature ? 'M109 wait' : 'M104 no wait'})`,
+    `${MARKER} changes: ${insertedCount} tier commands inserted, ${neutralizedCount} temperature commands neutralized, start G-code kept`,
+  ]
+}
+
+export interface TransformInput {
+  readonly lines: readonly GcodeLine[]
+  readonly motion: MotionAnalysis
+  readonly config: TowerConfig
+}
+
+/**
+ * Pure line-preserving transform (ADR-0002): every output line is an input line
+ * byte-for-byte, an inserted tier command, a header line, or a neutralized line.
+ */
+export const transformGcode = ({ lines, motion, config }: TransformInput): TransformResult => {
+  const tiers = planTiers(config, motion.layers)
+  const insertBefore = new Map<number, TierPlacement[]>()
+  for (const placement of tiers) {
+    if (placement.lineIndex === null) continue
+    const list = insertBefore.get(placement.lineIndex) ?? []
+    list.push(placement)
+    insertBefore.set(placement.lineIndex, list)
+  }
+
+  const firstBoundary = tierBoundaryZ(config, 0)
+  const neutralize = new Set<number>()
+  for (const temperatureLine of motion.temperatureLines) {
+    const isTurnOff = temperatureLine.target !== null && temperatureLine.target <= 0
+    if (!isTurnOff && temperatureLine.layerZ >= firstBoundary - Z_EPSILON) neutralize.add(temperatureLine.lineIndex)
+  }
+
+  const ending = lines.find((line) => line.ending !== '')?.ending ?? '\n'
+  const changes: Change[] = []
+  const output: string[] = []
+
+  for (const headerLine of buildHeader(config, insertBefore.size === 0 ? 0 : tiers.filter((t) => t.lineIndex !== null).length, neutralize.size)) {
+    changes.push({ kind: 'header', text: headerLine })
+    output.push(headerLine, ending)
+  }
+
+  for (const line of lines) {
+    const inserts = insertBefore.get(line.index)
+    if (inserts) {
+      for (const placement of inserts) {
+        const text = tierCommand(config, placement.tier)
+        changes.push({ kind: 'insert', lineIndex: line.index, tier: placement.tier, text })
+        output.push(text, ending)
+      }
+    }
+    if (neutralize.has(line.index)) {
+      const text = `${NEUTRALIZED_PREFIX}${line.raw}`
+      changes.push({ kind: 'neutralize', lineIndex: line.index, original: line.raw, text })
+      output.push(text, line.ending)
+      continue
+    }
+    output.push(line.raw, line.ending)
+  }
+
+  return { text: output.join(''), changes, tiers }
+}

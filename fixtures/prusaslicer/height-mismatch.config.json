@@ -1,0 +1,18 @@
+{
+  "gcode": "zhop-on_rel-e_0.20.gcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 10,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "errors": [
+      "height-mismatch"
+    ]
+  },
+  "notes": "Same sliced file as zhop-on_rel-e_0.20 with a config that expects a 31 mm tower."
+}

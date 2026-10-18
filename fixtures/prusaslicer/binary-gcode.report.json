@@ -1,0 +1,50 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "binary-gcode.bgcode",
+  "slicer": {
+    "name": "unknown",
+    "version": null
+  },
+  "baseTemperature": {
+    "value": null,
+    "source": "unknown"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 0,
+    "typicalHeight": 0,
+    "maxZ": 0,
+    "expectedHeight": 19
+  },
+  "errors": [
+    {
+      "severity": "error",
+      "code": "binary-gcode",
+      "message": "Binary G-code (.bgcode) is not supported. Export ASCII G-code from PrusaSlicer (Printer Settings > General > Supports binary G-code: off)."
+    }
+  ],
+  "warnings": [],
+  "tiers": [],
+  "inserted": [],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": null
+    },
+    {
+      "z": 19,
+      "temperature": null
+    }
+  ],
+  "canDownload": false
+}

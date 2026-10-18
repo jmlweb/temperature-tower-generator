@@ -1,0 +1,17 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "errors": [
+      "arc-moves"
+    ]
+  },
+  "notes": "Arc fitting on; PrusaSlicer 3.0 enables it by default."
+}

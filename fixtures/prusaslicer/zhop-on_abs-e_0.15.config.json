@@ -1,0 +1,17 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "warnings": [
+      "height-off-by-one-layer"
+    ]
+  },
+  "notes": "19 mm is not a multiple of 0.15 mm after the 0.2 mm first layer, so the top layer lands within one layer of the expected height."
+}

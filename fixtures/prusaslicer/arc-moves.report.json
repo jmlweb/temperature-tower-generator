@@ -1,0 +1,50 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "arc-moves.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "3.0.0-alpha12"
+  },
+  "baseTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [
+    {
+      "severity": "error",
+      "code": "arc-moves",
+      "message": "Arc moves (G2/G3) are not supported yet; the first one is on line 393. Set Print Settings > Advanced > Arc fitting to Disabled and re-slice."
+    }
+  ],
+  "warnings": [],
+  "tiers": [],
+  "inserted": [],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 215
+    },
+    {
+      "z": 19,
+      "temperature": 215
+    }
+  ],
+  "canDownload": false
+}

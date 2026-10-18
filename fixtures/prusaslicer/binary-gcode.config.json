@@ -1,0 +1,18 @@
+{
+  "gcode": "binary-gcode.bgcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "errors": [
+      "binary-gcode"
+    ]
+  },
+  "notes": "Synthetic fixture written by scripts/slice-fixtures.ts."
+}

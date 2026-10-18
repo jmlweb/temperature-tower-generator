@@ -1,0 +1,13 @@
+{
+  "name": "@temptower/geometry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@temptower/core": "workspace:*",
+    "manifold-3d": "^3.5.4"
+  }
+}

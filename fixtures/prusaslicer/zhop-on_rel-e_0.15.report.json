@@ -1,0 +1,100 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "zhop-on_rel-e_0.15.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "3.0.0-alpha12"
+  },
+  "baseTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_230to220_step5_h6_b1_m104",
+  "layers": {
+    "count": 126,
+    "typicalHeight": 0.15,
+    "maxZ": 18.95,
+    "expectedHeight": 19
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "code": "height-off-by-one-layer",
+      "message": "The model is 18.95 mm tall, within one layer of the expected 19.00 mm."
+    }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "temperature": 230,
+      "boundaryZ": 1,
+      "layerIndex": 6,
+      "layerZ": 1.1,
+      "lineIndex": 2292
+    },
+    {
+      "tier": 1,
+      "temperature": 225,
+      "boundaryZ": 7,
+      "layerIndex": 46,
+      "layerZ": 7.1,
+      "lineIndex": 13984
+    },
+    {
+      "tier": 2,
+      "temperature": 220,
+      "boundaryZ": 13,
+      "layerIndex": 86,
+      "layerZ": 13.1,
+      "lineIndex": 25013
+    }
+  ],
+  "inserted": [
+    {
+      "lineNumber": 2293,
+      "text": "M104 S230 ; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 13985,
+      "text": "M104 S225 ; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 25014,
+      "text": "M104 S220 ; [temptower] tier 2"
+    }
+  ],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 215
+    },
+    {
+      "z": 1,
+      "temperature": 230
+    },
+    {
+      "z": 7,
+      "temperature": 225
+    },
+    {
+      "z": 13,
+      "temperature": 220
+    },
+    {
+      "z": 19,
+      "temperature": 220
+    }
+  ],
+  "canDownload": true
+}

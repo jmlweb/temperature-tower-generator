@@ -1,0 +1,29 @@
+{
+  "name": "temptower",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "scripts": {
+    "dev": "pnpm --filter @temptower/web dev",
+    "build": "pnpm --filter @temptower/web build",
+    "preview": "pnpm --filter @temptower/web preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p packages/core && tsc -p packages/core/tsconfig.test.json && tsc -p packages/geometry && tsc -p fixtures && tsc -p scripts && tsc -p apps/web",
+    "fixture": "vitest run fixtures --update",
+    "slice-fixtures": "node scripts/slice-fixtures.ts"
+  },
+  "devDependencies": {
+    "@fast-check/vitest": "^0.5.0",
+    "@types/node": "^24.0.0",
+    "fast-check": "^4.10.2",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
