@@ -23,7 +23,7 @@ export const encodeTowerConfigName = (config: TowerConfig): string =>
 
 const NUMBER = String.raw`\d+(?:\.\d+)?`
 const PATTERN = new RegExp(
-  `${PREFIX}_(PLA|PETG|CUSTOM)_(${NUMBER})to(${NUMBER})_step(${NUMBER})_h(${NUMBER})_b(${NUMBER})_(m104|m109)`,
+  `${PREFIX}_(PLA|PETG|ABS|ASA|TPU|HIPS|PA|PC|CUSTOM)_(${NUMBER})to(${NUMBER})_step(${NUMBER})_h(${NUMBER})_b(${NUMBER})_(m104|m109)`,
 )
 
 /** Finds an encoded config anywhere in `name` (slicers append suffixes), or returns null. */

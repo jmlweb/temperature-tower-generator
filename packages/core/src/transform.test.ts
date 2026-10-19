@@ -129,7 +129,7 @@ const lineArbitrary = fc.oneof(
 const endingArbitrary = fc.constantFrom('\n', '\r\n')
 
 const configArbitrary: fc.Arbitrary<TowerConfig> = fc.record({
-  material: fc.constantFrom(Material.PLA, Material.PETG, Material.CUSTOM),
+  material: fc.constantFrom(...Object.values(Material)),
   startTemperature: fc.integer({ min: 180, max: 260 }),
   endTemperature: fc.integer({ min: 180, max: 260 }),
   step: fc.integer({ min: 3, max: 10 }),

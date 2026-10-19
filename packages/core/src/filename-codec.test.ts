@@ -5,7 +5,7 @@ import { Material, type TowerConfig } from './tower-config.ts'
 
 const towerConfigArbitrary = (): fc.Arbitrary<TowerConfig> =>
   fc.record({
-    material: fc.constantFrom(Material.PLA, Material.PETG, Material.CUSTOM),
+    material: fc.constantFrom(...Object.values(Material)),
     startTemperature: fc.integer({ min: 150, max: 320 }),
     endTemperature: fc.integer({ min: 150, max: 320 }),
     step: fc.integer({ min: 1, max: 20 }),
