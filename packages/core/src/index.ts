@@ -15,6 +15,8 @@ export {
   tierBoundaryZ,
   tierStartZ,
   towerHeight,
+  PRUSA_MAX_NOZZLE_TEMPERATURE,
+  temperaturesAbovePrinterLimit,
   temperaturesOutsidePreset,
   validateTowerConfig,
   type TowerConfig,

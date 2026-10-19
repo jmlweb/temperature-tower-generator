@@ -4,6 +4,8 @@ import {
   encodeTowerConfigName,
   findPreset,
   tierCount,
+  PRUSA_MAX_NOZZLE_TEMPERATURE,
+  temperaturesAbovePrinterLimit,
   temperaturesOutsidePreset,
   tierTemperatures,
   towerHeight,
@@ -61,6 +63,7 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
       const coldest = Math.min(...temps)
       const heat = (t: number) => (hottest === coldest ? 0.5 : (t - coldest) / (hottest - coldest))
       const outside = new Set(temperaturesOutsidePreset(config))
+      const tooHot = temperaturesAbovePrinterLimit(config)
       replaceChildren(
         preview,
         el(
@@ -80,6 +83,9 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
         outside.size === 0
           ? null
           : el('p', { class: 'preview-warning', role: 'status' }, `${[...outside].join(', ')} °C ${outside.size === 1 ? 'is' : 'are'} outside the ${preset.label} range of ${preset.minTemperature}–${preset.maxTemperature} °C. The tower still generates; check your filament's datasheet.`),
+        tooHot.length === 0
+          ? null
+          : el('p', { class: 'preview-warning', role: 'status' }, `${tooHot.join(', ')} °C ${tooHot.length === 1 ? 'is' : 'are'} above ${PRUSA_MAX_NOZZLE_TEMPERATURE} °C, the nozzle limit of current Prusa printers. Check your printer's maximum.`),
         el('div', { class: 'preview-file' }, 'STL file name: ', el('code', {}, ...`${encodeTowerConfigName(config)}.stl`.split(/(?<=_)/).flatMap((part) => [part, el('wbr', {})]))),
       )
       preview.hidden = false

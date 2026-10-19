@@ -247,6 +247,12 @@ export const temperaturesOutsidePreset = (config: TowerConfig): readonly number[
   return tierTemperatures(config).filter((t) => t < preset.minTemperature || t > preset.maxTemperature)
 }
 
+/** Nozzle limit of the current Prusa printers (MK4S, CORE One); the MINI and older models cap lower (ADR-0011). */
+export const PRUSA_MAX_NOZZLE_TEMPERATURE = 290
+
+export const temperaturesAbovePrinterLimit = (config: TowerConfig): readonly number[] =>
+  tierTemperatures(config).filter((t) => t > PRUSA_MAX_NOZZLE_TEMPERATURE)
+
 export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   const problems: string[] = []
   const isFinite = (n: number) => Number.isFinite(n)

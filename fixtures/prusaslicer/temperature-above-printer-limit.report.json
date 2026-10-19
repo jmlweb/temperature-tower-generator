@@ -1,0 +1,100 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "zhop-on_rel-e_0.20.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "3.0.0-alpha12"
+  },
+  "input": {
+    "format": "text",
+    "binary": null
+  },
+  "profileTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "CUSTOM",
+    "startTemperature": 300,
+    "endTemperature": 290,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_CUSTOM_300to290_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "code": "temperature-above-printer-limit",
+      "message": "Tier temperatures 300, 295 °C are above 290 °C, the nozzle limit of current Prusa printers. The firmware may refuse them or stop with a max-temperature error."
+    }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "temperature": 300,
+      "startZ": 0,
+      "layerIndex": 0,
+      "layerZ": 0.2,
+      "lineIndex": 39
+    },
+    {
+      "tier": 1,
+      "temperature": 295,
+      "startZ": 7,
+      "layerIndex": 35,
+      "layerZ": 7.2,
+      "lineIndex": 13065
+    },
+    {
+      "tier": 2,
+      "temperature": 290,
+      "startZ": 13,
+      "layerIndex": 65,
+      "layerZ": 13.2,
+      "lineIndex": 22423
+    }
+  ],
+  "inserted": [
+    {
+      "lineNumber": 40,
+      "text": "M109 R300 ; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 13066,
+      "text": "M104 S295 ; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 22424,
+      "text": "M104 S290 ; [temptower] tier 2"
+    }
+  ],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 300
+    },
+    {
+      "z": 7,
+      "temperature": 295
+    },
+    {
+      "z": 13,
+      "temperature": 290
+    },
+    {
+      "z": 19,
+      "temperature": 290
+    }
+  ],
+  "canDownload": true
+}

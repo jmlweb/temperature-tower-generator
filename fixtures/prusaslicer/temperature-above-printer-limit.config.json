@@ -1,0 +1,18 @@
+{
+  "gcode": "zhop-on_rel-e_0.20.gcode",
+  "config": {
+    "material": "CUSTOM",
+    "startTemperature": 300,
+    "endTemperature": 290,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "warnings": [
+      "temperature-above-printer-limit"
+    ]
+  },
+  "notes": "Same sliced file as zhop-on_rel-e_0.20 with a Custom tower above the 290 °C Prusa nozzle limit (ADR-0011)."
+}
