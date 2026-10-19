@@ -74,13 +74,6 @@ describe('validation (ADR-0004)', () => {
     expect(codes(text)).toEqual([`warning:${ValidationCode.MARKER_MISMATCH}`])
   })
 
-  it('warns when the profile heats the first layer above tier 0 (ADR-0009)', () => {
-    const profile = (first: number) => `${towerGcode(19)}\n; first_layer_temperature = ${first}\n; temperature = ${first}`
-    expect(codes(profile(235))).toEqual([`warning:${ValidationCode.FIRST_LAYER_ABOVE_TIER_0}`])
-    expect(codes(profile(230))).toEqual([])
-    expect(codes(`M109 S240\n${towerGcode(19)}`)).toEqual([`warning:${ValidationCode.FIRST_LAYER_ABOVE_TIER_0}`])
-  })
-
   it('warns on multi-tool G-code', () => {
     expect(codes(`T0\n${towerGcode(19)}\nT1`)).toEqual([`warning:${ValidationCode.MULTI_TOOL}`])
   })

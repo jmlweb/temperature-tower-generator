@@ -20,7 +20,7 @@ description: Adds a sliced G-code fixture with its golden output and report snap
    - **Valid fixture:** it writes the golden output and the report snapshot.
    - **Error fixture** (a check in ADR-0004's `error` list): snapshot only the report, and assert that no output file is produced.
 4. Review the golden diff by hand (ADR-0002, ADR-0004):
-   - Each inserted tier command ends with ` ; [temptower] tier <i>`, and there is one per tier boundary, at the right Z.
+   - Each inserted tier command ends with ` ; [temptower] tier <i>`, and there is one per tier boundary, at the right Z: the first layer whose top is above the tier start (ADR-0010).
    - Inserted header lines start with `; [temptower]`.
    - Neutralized lines are only `M104`/`M109` lines at or above the first tier boundary, prefixed with `; [temptower] neutralized: `. Start G-code temperatures are kept.
    - The report's warnings and errors are the expected ones.

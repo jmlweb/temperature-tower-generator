@@ -123,7 +123,7 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
       { class: 'field field-switch', for: 'config-wait' },
       wait,
       el('span', { class: 'switch', 'aria-hidden': 'true' }),
-      el('span', { class: 'switch-text' }, el('span', {}, 'Wait for temperature at each tier'), el('small', {}, 'Uses M109 instead of M104, so each tier starts only once the nozzle is at its temperature.')),
+      el('span', { class: 'switch-text' }, el('span', {}, 'Wait for temperature at each tier'), el('small', {}, 'Uses M109 R instead of M104, so each tier starts only once the nozzle has heated or cooled to its temperature.')),
     ),
     preview,
     problems,

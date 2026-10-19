@@ -30,12 +30,12 @@ Slicer-Agnostic Temperature Tower Generator is a free, 100% client-side browser 
   - An inserted header line starts with `; [temptower]`.
   - A neutralized input line is prefixed with `; [temptower] neutralized: `.
   - All other input lines appear byte-for-byte.
-- Tier 0 starts at Z 0: its command is an `M109` (whatever `waitForTemperature` says) before the first extruding move of the file, so the purge and base print at tier 0's temperature (ADR-0009).
+- Tier 0 starts at Z 0: its command is an `M109 R<t>` (whatever `waitForTemperature` says) before the first extruding move of the file, so the purge and base print at tier 0's temperature (ADR-0009, ADR-0010). A tier starts at the first layer whose top Z is above its start Z, and waiting tiers use `M109 R` so the nozzle also waits for cooling (ADR-0010).
 - Only `M104`/`M109` lines (including `T`-indexed variants) after the tier 0 command are neutralized, except turn-offs (`S0`). The start G-code before it is kept. A fixture covers both cases (ADR-0002, ADR-0009).
 - Layer boundaries come from motion state; slicer markers never override them and a disagreement emits a warning (ADR-0003).
 - Every supported G-code feature (Z-hop, relative E, `G92 E0`, arcs) has at least one fixture with a golden output (ADR-0003, ADR-0008).
 - The slicer reader registry in `packages/core` holds only the PrusaSlicer reader until Phase 2 starts. Phase 2 starts after the first external failing-G-code report is triaged (ADR-0003).
-- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007, and the arc line removed, ADR-0008, and `first-layer-above-tier-0` added, ADR-0009), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
+- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007, and the arc line removed, ADR-0008, and `first-layer-above-tier-0` added by ADR-0009 and removed by ADR-0010), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
 - The download control is reachable only after the report renders (ADR-0004).
 - Output G-code starts with a `; [temptower]` header block holding the tool version, tower config and change summary (ADR-0004).
 - A `.bgcode` upload is decoded in the worker by the pure TypeScript codec in `packages/core/src/bgcode`; the transform runs on the decoded text, and the output is re-encoded with every non-G-code block copied byte-for-byte and the input's G-code compression and encoding (ADR-0007).

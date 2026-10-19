@@ -41,7 +41,7 @@ G80 X99.0729 Y84.6229 W55.6542 H40.7542 ; mesh bed levelling
 G1 Z0.2 F720
 G1 Y-3 F1000 ; go outside print area
 G92 E0
-M109 S230 ; [temptower] tier 0
+M109 R230 ; [temptower] tier 0
 G1 X60 E9 F1000 ; intro line
 G1 X100 E12.5 F1000 ; intro line
 G92 E0

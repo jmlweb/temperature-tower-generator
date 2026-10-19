@@ -248,13 +248,6 @@ const main = async (): Promise<void> => {
   writeSynthetic('marker-mismatch', `${syntheticTower({ top: 19 })};LAYER_CHANGE\n;Z:40\n`, { warnings: ['marker-mismatch'] })
 
   writeDerived('height-mismatch', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, blockHeight: 10 }, { errors: ['height-mismatch'] }, 'Same sliced file as zhop-on_rel-e_0.20 with a config that expects a 31 mm tower.')
-  writeDerived(
-    'first-layer-above-tier-0',
-    'zhop-on_rel-e_0.20.gcode',
-    { ...FIXTURE_CONFIG, startTemperature: 210, endTemperature: 200 },
-    { warnings: ['first-layer-above-tier-0'] },
-    'Same sliced file as zhop-on_rel-e_0.20 (215 °C first layer) with tier 0 at 210 °C, so M109 S210 does not cool the nozzle before the purge (ADR-0009).',
-  )
   writeDerived('temperature-outside-preset', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, startTemperature: 240, endTemperature: 230 }, { warnings: ['temperature-outside-preset'] }, 'Same sliced file as zhop-on_rel-e_0.20 with tiers above the PLA preset range.')
 }
 

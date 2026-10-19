@@ -50,30 +50,30 @@
       "tier": 1,
       "temperature": 235,
       "startZ": 7,
-      "layerIndex": 34,
-      "layerZ": 7,
-      "lineIndex": 12485
+      "layerIndex": 35,
+      "layerZ": 7.2,
+      "lineIndex": 13065
     },
     {
       "tier": 2,
       "temperature": 230,
       "startZ": 13,
-      "layerIndex": 64,
-      "layerZ": 13,
-      "lineIndex": 21842
+      "layerIndex": 65,
+      "layerZ": 13.2,
+      "lineIndex": 22423
     }
   ],
   "inserted": [
     {
       "lineNumber": 40,
-      "text": "M109 S240 ; [temptower] tier 0"
+      "text": "M109 R240 ; [temptower] tier 0"
     },
     {
-      "lineNumber": 12486,
+      "lineNumber": 13066,
       "text": "M104 S235 ; [temptower] tier 1"
     },
     {
-      "lineNumber": 21843,
+      "lineNumber": 22424,
       "text": "M104 S230 ; [temptower] tier 2"
     }
   ],

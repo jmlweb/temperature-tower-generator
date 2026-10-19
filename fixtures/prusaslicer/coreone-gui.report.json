@@ -51,65 +51,65 @@
       "tier": 1,
       "temperature": 225,
       "startZ": 12,
-      "layerIndex": 59,
-      "layerZ": 12,
-      "lineIndex": 13715
+      "layerIndex": 60,
+      "layerZ": 12.2,
+      "lineIndex": 14143
     },
     {
       "tier": 2,
       "temperature": 220,
       "startZ": 22,
-      "layerIndex": 109,
-      "layerZ": 22,
-      "lineIndex": 24114
+      "layerIndex": 110,
+      "layerZ": 22.2,
+      "lineIndex": 24538
     },
     {
       "tier": 3,
       "temperature": 215,
       "startZ": 32,
-      "layerIndex": 159,
-      "layerZ": 32,
-      "lineIndex": 34742
+      "layerIndex": 160,
+      "layerZ": 32.2,
+      "lineIndex": 35167
     },
     {
       "tier": 4,
       "temperature": 210,
       "startZ": 42,
-      "layerIndex": 209,
-      "layerZ": 42,
-      "lineIndex": 44976
+      "layerIndex": 210,
+      "layerZ": 42.2,
+      "lineIndex": 45402
     },
     {
       "tier": 5,
       "temperature": 205,
       "startZ": 52,
-      "layerIndex": 259,
-      "layerZ": 52,
-      "lineIndex": 55461
+      "layerIndex": 260,
+      "layerZ": 52.2,
+      "lineIndex": 55886
     },
     {
       "tier": 6,
       "temperature": 200,
       "startZ": 62,
-      "layerIndex": 309,
-      "layerZ": 62,
-      "lineIndex": 66202
+      "layerIndex": 310,
+      "layerZ": 62.2,
+      "lineIndex": 66625
     },
     {
       "tier": 7,
       "temperature": 195,
       "startZ": 72,
-      "layerIndex": 359,
-      "layerZ": 72,
-      "lineIndex": 77139
+      "layerIndex": 360,
+      "layerZ": 72.2,
+      "lineIndex": 77565
     },
     {
       "tier": 8,
       "temperature": 190,
       "startZ": 82,
-      "layerIndex": 409,
-      "layerZ": 82,
-      "lineIndex": 87525
+      "layerIndex": 410,
+      "layerZ": 82.2,
+      "lineIndex": 87952
     }
   ],
   "inserted": [
@@ -119,70 +119,70 @@
     },
     {
       "lineNumber": 323,
-      "text": "M109 S230"
+      "text": "M109 R230"
     },
     {
-      "lineNumber": 13716,
+      "lineNumber": 14144,
       "text": "; [temptower] tier 1"
     },
     {
-      "lineNumber": 13716,
+      "lineNumber": 14144,
       "text": "M104 S225"
     },
     {
-      "lineNumber": 24115,
+      "lineNumber": 24539,
       "text": "; [temptower] tier 2"
     },
     {
-      "lineNumber": 24115,
+      "lineNumber": 24539,
       "text": "M104 S220"
     },
     {
-      "lineNumber": 34743,
+      "lineNumber": 35168,
       "text": "; [temptower] tier 3"
     },
     {
-      "lineNumber": 34743,
+      "lineNumber": 35168,
       "text": "M104 S215"
     },
     {
-      "lineNumber": 44977,
+      "lineNumber": 45403,
       "text": "; [temptower] tier 4"
     },
     {
-      "lineNumber": 44977,
+      "lineNumber": 45403,
       "text": "M104 S210"
     },
     {
-      "lineNumber": 55462,
+      "lineNumber": 55887,
       "text": "; [temptower] tier 5"
     },
     {
-      "lineNumber": 55462,
+      "lineNumber": 55887,
       "text": "M104 S205"
     },
     {
-      "lineNumber": 66203,
+      "lineNumber": 66626,
       "text": "; [temptower] tier 6"
     },
     {
-      "lineNumber": 66203,
+      "lineNumber": 66626,
       "text": "M104 S200"
     },
     {
-      "lineNumber": 77140,
+      "lineNumber": 77566,
       "text": "; [temptower] tier 7"
     },
     {
-      "lineNumber": 77140,
+      "lineNumber": 77566,
       "text": "M104 S195"
     },
     {
-      "lineNumber": 87526,
+      "lineNumber": 87953,
       "text": "; [temptower] tier 8"
     },
     {
-      "lineNumber": 87526,
+      "lineNumber": 87953,
       "text": "M104 S190"
     }
   ],

@@ -30,7 +30,7 @@ These are checked first against TSK-001's result: a refuted assumption meets the
 ## Scope
 - In (Phase 1): parametric tower STL generated in the browser, with labels, PLA, PLA+, PLA silk, PETG, ABS, ASA, TPU, HIPS, PA and PC presets, and the config encoded in the filename.
 - In (Phase 1): PrusaSlicer ASCII G-code analysis, transformation, validation and preview. Arc moves (`G2`/`G3`) are an error.
-- In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109` when the config's wait-for-temperature flag is set).
+- In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109 R` when the config's wait-for-temperature flag is set).
 - In (Phase 1): static hosting with an anonymous event counter.
 - Phase 2 (always): optional back text, the RepRapFirmware dialect (`G10 P0 S…`). Binary G-code (`.bgcode`, ADR-0007) and arc moves (ADR-0008) moved into Phase 1 because the Core One's stock profile produces both by default.
 - Phase 2 (conditional): OrcaSlicer and Cura fixtures and config readers. These go ahead only if TSK-001 or post-launch reports show those users want the verified change report.

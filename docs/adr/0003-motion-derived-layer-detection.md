@@ -1,6 +1,6 @@
 # 0003. Layer boundaries derived from motion, slicer markers as cross-check
 
-**Status:** accepted; the Phase 1 arc error is superseded by ADR-0008, which treats `G2`/`G3` as ordinary moves
+**Status:** accepted; the Phase 1 arc error is superseded by ADR-0008, which treats `G2`/`G3` as ordinary moves; ADR-0010 changes which layer a tier starts on
 
 ## Context
 Phase 1 targets PrusaSlicer only. The core is designed to stay slicer-agnostic, so the conditional Phase 2 (OrcaSlicer, Cura) needs no rewrite. Slicer layer markers differ by slicer and can be absent or misleading (Z-hop, travel moves). Tiers starting at the wrong layer is the failure users already report with the formula workaround.

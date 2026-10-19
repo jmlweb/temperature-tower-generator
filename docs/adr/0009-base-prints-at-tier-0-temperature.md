@@ -1,6 +1,6 @@
 # 0009. The base prints at the tier 0 temperature
 
-**Status:** accepted; changes the neutralize rule of ADR-0002 and how the transform reads tier starts under ADR-0005
+**Status:** accepted; changes the neutralize rule of ADR-0002 and how the transform reads tier starts under ADR-0005; ADR-0010 replaces `M109 S` with `M109 R` and removes the `first-layer-above-tier-0` warning
 
 ## Context
 ADR-0002 keeps every line below the first tier boundary, and the tier 0 command goes in at Z = `b`. The base plate (0 to 1.4 mm on the presets) therefore prints at the profile's `first_layer_temperature` (215 °C in the MK3S fixtures, 210 °C in `coreone-gui`), and tier 0's temperature (230 °C) arrives `b` mm up. Users expect the print to start at the tier they configured. Instead, the chart and report show a base stub they never set, and tier 0's first layers print while the nozzle is still heating. Motion analysis (ADR-0003) puts the start G-code's intro or purge line into layer 0, because it extrudes at the first layer's Z. In `zhop-on_abs-e_0.20` and `coreone-gui`, layer 0's first line is the intro or purge move, not the first object move.

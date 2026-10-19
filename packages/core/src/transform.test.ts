@@ -39,21 +39,21 @@ describe('transform', () => {
     const result = run(towerGcode(19))
     const inserted = result.changes.filter((c) => c.kind === 'insert')
     expect(inserted.map((c) => c.text)).toEqual([
-      `M109 S230 ${MARKER} tier 0`,
+      `M109 R230 ${MARKER} tier 0`,
       `M104 S225 ${MARKER} tier 1`,
       `M104 S220 ${MARKER} tier 2`,
     ])
     expect(result.tiers.map((t) => t.startZ)).toEqual([0, 7, 13])
-    expect(result.tiers.map((t) => t.layerZ)).toEqual([0.2, 7, 13])
+    expect(result.tiers.map((t) => t.layerZ)).toEqual([0.2, 7.2, 13.2])
     const outputLines = result.text.split('\n')
     const tier1 = outputLines.indexOf(`M104 S225 ${MARKER} tier 1`)
-    expect(outputLines[tier1 + 1]).toBe('G1 X10 Y10 E1 ; layer at 7')
+    expect(outputLines[tier1 + 1]).toBe('G1 X20 Y10 E1 ; layer at 7.2')
   })
 
   it('starts tier 0 at the first extruding move of the file, waiting, so the base prints at its temperature (ADR-0009)', () => {
     const result = run(towerGcode(19))
     const outputLines = result.text.split('\n')
-    const tier0 = outputLines.indexOf(`M109 S230 ${MARKER} tier 0`)
+    const tier0 = outputLines.indexOf(`M109 R230 ${MARKER} tier 0`)
     expect(outputLines[tier0 - 1]).toBe('G1 Z0.2')
     expect(outputLines[tier0 + 1]).toBe('G1 X10 Y10 E1 ; layer at 0.2')
   })
@@ -96,8 +96,8 @@ describe('transform', () => {
     const lines = parseGcode(towerGcode(19))
     const result = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line' })
     const inserted = result.changes.filter((c) => c.kind === 'insert').map((c) => c.text)
-    expect(inserted).toEqual([tierMarkerLine(0), 'M109 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
-    expect(result.text).toContain(`\n${MARKER} tier 1\nM104 S225\nG1 X10 Y10 E1 ; layer at 7\n`)
+    expect(inserted).toEqual([tierMarkerLine(0), 'M109 R230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
+    expect(result.text).toContain(`\n${MARKER} tier 1\nM104 S225\nG1 X20 Y10 E1 ; layer at 7.2\n`)
   })
 
   it('leaves tiers unplaced when the model is too short', () => {
@@ -196,7 +196,7 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       let expectCommand = false
       for (const line of outputLines) {
         if (expectCommand) {
-          expect(line).toMatch(/^M10[49] S\d+$/)
+          expect(line).toMatch(/^(M109 R|M10[49] S)\d+$/)
           expectCommand = false
           continue
         }

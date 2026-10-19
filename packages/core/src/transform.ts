@@ -27,9 +27,11 @@ export interface TransformResult {
 }
 
 /**
- * Maps each tier to the first layer at or above its start. Tier 0 starts at Z 0,
- * so it lands on layer 0, whose first extruding move is the start G-code's purge
- * line in PrusaSlicer's stock profiles (ADR-0009). Shared formula from tower-config (ADR-0005).
+ * Maps each tier to the first layer that prints above its start. A layer's Z is
+ * its top, so a layer topped exactly at the start still belongs to the tier below
+ * (ADR-0010). Tier 0 starts at Z 0, so it lands on layer 0, whose first extruding
+ * move is the start G-code's purge line in PrusaSlicer's stock profiles (ADR-0009).
+ * Shared formula from tower-config (ADR-0005).
  */
 export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readonly TierPlacement[] => {
   const placements: TierPlacement[] = []
@@ -39,7 +41,7 @@ export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readon
     let found: Layer | null = null
     for (let i = searchFrom; i < layers.length; i += 1) {
       const layer = layers[i]!
-      if (layer.z >= startZ - Z_EPSILON) {
+      if (layer.z > startZ + Z_EPSILON) {
         found = layer
         searchFrom = i + 1
         break
@@ -70,7 +72,8 @@ export const tierMarkerLine = (tier: number): string => `${MARKER} tier ${tier}`
 const isWaitingTier = (config: TowerConfig, tier: number): boolean => tier === 0 || config.waitForTemperature
 
 export const tierCommand = (config: TowerConfig, tier: number, markerStyle: MarkerStyle = 'inline'): string => {
-  const command = `${isWaitingTier(config, tier) ? 'M109' : 'M104'} S${tierTemperature(config, tier)}`
+  // R waits for cooling as well as heating; M109 S returns at once when the nozzle is hotter (ADR-0010).
+  const command = isWaitingTier(config, tier) ? `M109 R${tierTemperature(config, tier)}` : `M104 S${tierTemperature(config, tier)}`
   return markerStyle === 'inline' ? `${command} ${tierMarkerLine(tier)}` : command
 }
 
