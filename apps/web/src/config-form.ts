@@ -20,9 +20,9 @@ export interface ConfigForm {
   onChange(listener: (config: TowerConfig) => void): void
 }
 
-const numberInput = (name: string, label: string, step: string, min: string) => {
-  const input = el('input', { type: 'number', name, step, min, required: true, id: `config-${name}` })
-  const wrapper = el('label', { class: 'field', for: `config-${name}` }, el('span', {}, label), input)
+const numberInput = (name: string, label: string, unit: string, step: string, min: string) => {
+  const input = el('input', { type: 'number', name, step, min, required: true, id: `config-${name}`, inputmode: 'decimal' })
+  const wrapper = el('label', { class: 'field', for: `config-${name}` }, el('span', {}, label), el('span', { class: 'control' }, input, el('span', { class: 'unit' }, unit)))
   return { input, wrapper }
 }
 
@@ -30,13 +30,13 @@ const numberInput = (name: string, label: string, step: string, min: string) => 
 export const createConfigForm = (initial: TowerConfig): ConfigForm => {
   const listeners: ((config: TowerConfig) => void)[] = []
   const material = el('select', { name: 'material', id: 'config-material' }, ...MATERIAL_PRESETS.map((preset) => el('option', { value: preset.material }, preset.label)))
-  const start = numberInput('startTemperature', 'Bottom tier °C', '1', '100')
-  const end = numberInput('endTemperature', 'Top tier °C', '1', '100')
-  const step = numberInput('step', 'Step °C', '1', '1')
-  const blockHeight = numberInput('blockHeight', 'Block height mm', '0.5', '6')
-  const baseHeight = numberInput('baseHeight', 'Base height mm', '0.1', '1')
+  const start = numberInput('startTemperature', 'Bottom tier', '°C', '1', '100')
+  const end = numberInput('endTemperature', 'Top tier', '°C', '1', '100')
+  const step = numberInput('step', 'Step', '°C', '1', '1')
+  const blockHeight = numberInput('blockHeight', 'Block height', 'mm', '0.5', '6')
+  const baseHeight = numberInput('baseHeight', 'Base height', 'mm', '0.1', '1')
   const wait = el('input', { type: 'checkbox', name: 'waitForTemperature', id: 'config-wait' })
-  const summary = el('p', { class: 'summary', 'aria-live': 'polite' })
+  const preview = el('div', { class: 'preview', 'aria-live': 'polite' })
   const problems = el('ul', { class: 'problems', 'aria-live': 'polite' })
 
   const read = (): TowerConfig => ({
@@ -56,14 +56,32 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
     if (issues.length === 0) {
       const preset = findPreset(config.material)
       const temps = tierTemperatures(config)
+      const hottest = Math.max(...temps)
+      const coldest = Math.min(...temps)
+      const heat = (t: number) => (hottest === coldest ? 0.5 : (t - coldest) / (hottest - coldest))
       replaceChildren(
-        summary,
-        `${tierCount(config)} tiers (${temps.join(', ')} °C), ${towerHeight(config)} mm tall. `,
-        `Preset range ${preset.minTemperature}–${preset.maxTemperature} °C. `,
-        el('code', {}, `${encodeTowerConfigName(config)}.stl`),
+        preview,
+        el(
+          'div',
+          { class: 'preview-stats' },
+          el('span', {}, el('strong', {}, String(tierCount(config))), ' tiers'),
+          el('span', {}, el('strong', {}, `${towerHeight(config)} mm`), ' tall'),
+          el('span', {}, 'Preset range ', el('strong', {}, `${preset.minTemperature}–${preset.maxTemperature} °C`)),
+        ),
+        el(
+          'div',
+          { class: 'tier-chips', 'aria-label': 'Tier temperatures from bottom to top' },
+          el('span', { class: 'tier-end' }, 'Bottom'),
+          ...temps.map((t) => el('span', { class: 'tier-chip', style: `--heat: ${heat(t).toFixed(2)}` }, `${t}°`)),
+          el('span', { class: 'tier-end' }, 'Top'),
+        ),
+        // Break the long name only after underscores, never inside a value like `step5`.
+        el('div', { class: 'preview-file' }, 'STL file name: ', el('code', {}, ...`${encodeTowerConfigName(config)}.stl`.split(/(?<=_)/).flatMap((part) => [part, el('wbr', {})]))),
       )
+      preview.hidden = false
     } else {
-      replaceChildren(summary)
+      replaceChildren(preview)
+      preview.hidden = true
     }
     for (const listener of listeners) listener(config)
   }
@@ -90,14 +108,20 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
   const element = el(
     'form',
     { class: 'config-form', onsubmit: (event: Event) => event.preventDefault() },
-    el('label', { class: 'field', for: 'config-material' }, el('span', {}, 'Material preset'), material),
+    el('label', { class: 'field field-material', for: 'config-material' }, el('span', {}, 'Material preset'), el('span', { class: 'control control-select' }, material)),
     start.wrapper,
     end.wrapper,
     step.wrapper,
     blockHeight.wrapper,
     baseHeight.wrapper,
-    el('label', { class: 'field field-checkbox', for: 'config-wait' }, wait, el('span', {}, 'Wait for temperature at each tier (M109 instead of M104)')),
-    summary,
+    el(
+      'label',
+      { class: 'field field-switch', for: 'config-wait' },
+      wait,
+      el('span', { class: 'switch', 'aria-hidden': 'true' }),
+      el('span', { class: 'switch-text' }, el('span', {}, 'Wait for temperature at each tier'), el('small', {}, 'Uses M109 instead of M104, so each tier starts only once the nozzle is at its temperature.')),
+    ),
+    preview,
     problems,
   )
 
