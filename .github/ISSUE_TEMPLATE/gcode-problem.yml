@@ -1,0 +1,30 @@
+name: G-code problem
+description: The tool rejected, mis-processed or mis-tiered your G-code
+labels: [gcode]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The error or warning shown, or what looked wrong in the report.
+    validations:
+      required: true
+  - type: input
+    id: slicer
+    attributes:
+      label: PrusaSlicer version and printer profile
+      placeholder: "2.9.2, Original Prusa Core One"
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: File format
+      options: [".gcode", ".bgcode"]
+    validations:
+      required: true
+  - type: textarea
+    id: attach
+    attributes:
+      label: Attach the file
+      description: Drag in the G-code (zip it if GitHub refuses it), or say why you can't share it. Never include anything private; the file is the only way to reproduce the problem.
