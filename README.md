@@ -10,6 +10,10 @@ The steps:
 2. Slice the STL in PrusaSlicer with your own profile.
 3. Upload the G-code, plain `.gcode` or binary `.bgcode` (Core One, MK4S, XL, MINI); the page inserts one temperature command per tier, shows every change (temperature-vs-Z chart, inserted and neutralized lines, warnings) and only then offers the download in the same format.
 
+The report, before the download unlocks:
+
+<img src="docs/images/report.png" alt="Report view: temperature-versus-Z chart, tier table and the inserted commands" width="600">
+
 ## Privacy
 
 Your G-code, STL and settings are never uploaded. The only network request is one anonymous "file processed" count when you click the modified G-code download, in production builds only (`docs/adr/0001-client-side-only-processing.md`).
