@@ -12,7 +12,7 @@
       "checksum": "crc32",
       "gcodeCompression": "heatshrink-12-4",
       "gcodeEncoding": "meatpack-comments",
-      "gcodeBlocks": 13,
+      "gcodeBlocks": 10,
       "thumbnails": 1
     }
   },
@@ -45,7 +45,7 @@
       "boundaryZ": 1,
       "layerIndex": 4,
       "layerZ": 1,
-      "lineIndex": 1664
+      "lineIndex": 2488
     },
     {
       "tier": 1,
@@ -53,7 +53,7 @@
       "boundaryZ": 7,
       "layerIndex": 34,
       "layerZ": 7,
-      "lineIndex": 12691
+      "lineIndex": 11889
     },
     {
       "tier": 2,
@@ -61,32 +61,32 @@
       "boundaryZ": 13,
       "layerIndex": 64,
       "layerZ": 13,
-      "lineIndex": 23146
+      "lineIndex": 20280
     }
   ],
   "inserted": [
     {
-      "lineNumber": 1665,
+      "lineNumber": 2489,
       "text": "; [temptower] tier 0"
     },
     {
-      "lineNumber": 1665,
+      "lineNumber": 2489,
       "text": "M104 S230"
     },
     {
-      "lineNumber": 12692,
+      "lineNumber": 11890,
       "text": "; [temptower] tier 1"
     },
     {
-      "lineNumber": 12692,
+      "lineNumber": 11890,
       "text": "M104 S225"
     },
     {
-      "lineNumber": 23147,
+      "lineNumber": 20281,
       "text": "; [temptower] tier 2"
     },
     {
-      "lineNumber": 23147,
+      "lineNumber": 20281,
       "text": "M104 S220"
     }
   ],

@@ -4,7 +4,7 @@ import { textBitmap } from './font.ts'
 import { loadManifold, type ManifoldModule } from './manifold.ts'
 import { isManifold, meshBounds, meshHeight, readLabel } from './mesh-checks.ts'
 import { readBinaryStl, writeBinaryStl } from './stl.ts'
-import { TOWER_DIMENSIONS, buildTower, towerWidth } from './tower.ts'
+import { TOWER_DIMENSIONS, TOWER_WIDTH, buildTower } from './tower.ts'
 
 const config: TowerConfig = {
   material: Material.PLA,
@@ -40,9 +40,8 @@ describe('parametric tower (ADR-0006)', () => {
     }
   })
 
-  it('lays the tiers out 47 mm wide at 10 mm blocks, like the Smart Compact tower, and narrower when the eave is capped', () => {
-    expect(towerWidth(10)).toBe(47)
-    expect(towerWidth(6)).toBe(43)
+  it('makes each tier 45 mm long like the Smart Compact tower', () => {
+    expect(TOWER_WIDTH).toBe(45)
   })
 
   it('stays manifold at full height for the fixture config and every preset', () => {
@@ -55,14 +54,15 @@ describe('parametric tower (ADR-0006)', () => {
     }
   })
 
-  it('keeps every feature inside the base plate footprint', () => {
+  it('spans the dogbone plate footprint', () => {
     const pla = findPreset(Material.PLA).config
     const { min, max } = meshBounds(buildTower(wasm, pla).mesh)
     const D = TOWER_DIMENSIONS
-    expect(min[0]).toBeCloseTo(-D.plateSideMargin, 3)
-    expect(max[0]).toBeCloseTo(towerWidth(pla.blockHeight) + D.plateSideMargin, 3)
-    expect(min[1]).toBeCloseTo(-D.plateFrontMargin, 3)
-    expect(max[1]).toBeCloseTo(D.depth + D.plateFrontMargin, 3)
+    // The overhang tip at x = 0 reaches past the plate, as on the Smart Compact tower.
+    expect(min[0]).toBeCloseTo(0, 3)
+    expect(max[0]).toBeCloseTo(D.plateEnd, 3)
+    expect(min[1]).toBeCloseTo(D.depth / 2 - D.platePadDepth / 2, 3)
+    expect(max[1]).toBeCloseTo(D.depth / 2 + D.platePadDepth / 2, 3)
     expect(min[2]).toBe(0)
   })
 

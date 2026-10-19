@@ -3,58 +3,62 @@ import { GLYPH_ROWS, textCells, textColumns } from './font.ts'
 import type { ManifoldModule } from './manifold.ts'
 
 /**
- * Tier footprint in mm, laid out left to right like the Smart Compact tower
- * users already know: a 45° overhang eave, a bridge on two pillars, two
- * stringing cones, then the label body. Every tier shares it so blocks stack.
+ * One tier is a solid bar with the test features of the Smart Compact tower
+ * cut into it, measured from that model at a 10 mm block: a variable-angle
+ * overhang under the left end, a through window whose left wall runs
+ * diagonally so the bridge span grows from the back to the front, a keyhole
+ * with a spike inside near the right end, a rounded nose, chamfered long
+ * edges and the temperature engraved on the front face. Vertical features
+ * scale with the block height; plan dimensions stay fixed so tiers stack.
+ * Dimensions are mm; x runs along the bar, y through its depth, z up.
  */
 export const TOWER_DIMENSIONS = {
   depth: 10,
-  /** The base plate extends this far in front of and behind the tiers for adhesion. */
-  plateFrontMargin: 9,
-  plateSideMargin: 1,
-  /** The eave's run (and rise, at 45°) is capped here and by `h - 1` so it clears the tier below. */
-  overhangMaxRun: 9,
-  bridgePillarWidth: 2,
-  bridgeGap: 6,
-  bridgeThickness: 2,
-  coneZoneWidth: 12,
-  coneBaseRadius: 2.5,
-  coneTopRadius: 0.75,
-  coneSegments: 24,
-  bodyWidth: 14,
-  gapBetweenFeatures: 1,
-  labelHeight: 5,
-  labelDepth: 0.8,
+  bodyLength: 40,
+  noseRadius: 5,
+  chamfer: 0.4,
+  /** Block height the vertical features were measured at. */
+  referenceBlockHeight: 10,
+  /** Underside of the overhang from the bottom to the left tip: [x, z] pairs. Segments are 30°, 45°, 60° and 65° from vertical. */
+  overhangProfile: [
+    [9.5, 0],
+    [7.24, 3.9],
+    [4.41, 6.73],
+    [1.81, 8.23],
+    [0, 9.07],
+  ],
+  windowFloor: 5,
+  deckThickness: 0.8,
+  windowFrontStart: 3.5,
+  windowBackStart: 18.5,
+  windowEnd: 33.5,
+  holeX: 38.9,
+  holeZ: 5.3,
+  holeRadius: 3.9,
+  slotWidth: 2.4,
+  slotFloor: 1,
+  spikeRadius: 1.2,
+  spikeTop: 8.7,
+  labelX: 22,
+  labelBottom: 0.4,
+  labelHeight: 4.2,
+  labelDepth: 0.6,
+  plateStart: 3.8,
+  plateEnd: 46.7,
+  platePadDepth: 28,
+  plateWaistDepth: 11,
+  platePadLength: 2.2,
+  plateTransition: 10,
+  circularSegments: 48,
 } as const
 
 const D = TOWER_DIMENSIONS
-const BRIDGE_WIDTH = 2 * D.bridgePillarWidth + D.bridgeGap
 
-/**
- * Each cone reaches this far into the cone above so the union shares volume,
- * not a single point, and stays one manifold shell.
- */
-const CONE_OVERLAP = 0.1
+/** Length of a tier from the overhang tip to the nose. */
+export const TOWER_WIDTH = D.bodyLength + D.noseRadius
 
-interface TierLayout {
-  readonly run: number
-  readonly bridgeX: number
-  readonly conesX: number
-  readonly bodyX: number
-  readonly width: number
-}
-
-/** X offsets of the features of a tier `h` mm tall; the eave starts at x = 0. */
-const tierLayout = (h: number): TierLayout => {
-  const run = Math.min(D.overhangMaxRun, h - 1)
-  const bridgeX = run
-  const conesX = bridgeX + BRIDGE_WIDTH + D.gapBetweenFeatures
-  const bodyX = conesX + D.coneZoneWidth + D.gapBetweenFeatures
-  return { run, bridgeX, conesX, bodyX, width: bodyX + D.bodyWidth }
-}
-
-/** Width of the tiers (not the plate) for a block height; 47 mm at 10 mm like the Smart Compact tower. */
-export const towerWidth = (blockHeight: number): number => tierLayout(blockHeight).width
+/** Cutting tools reach this far past the faces they open, so no face is left coplanar with a cut. */
+const CUT_MARGIN = 0.5
 
 export interface TriangleMesh {
   /** Flat XYZ positions, 3 per vertex. */
@@ -74,7 +78,7 @@ export interface TowerLabel {
   readonly cell: number
   readonly columns: number
   readonly rows: number
-  /** Y of the raised label face. */
+  /** Y of the engraved label floor, behind the front face at y = 0. */
   readonly faceY: number
 }
 
@@ -93,30 +97,33 @@ interface Box {
   readonly h: number
 }
 
-const labelLayout = (config: TowerConfig, tier: number, layout: TierLayout): TowerLabel => {
+type Point = readonly [number, number]
+
+const verticalScale = (blockHeight: number): number => blockHeight / D.referenceBlockHeight
+
+const labelLayout = (config: TowerConfig, tier: number): TowerLabel => {
   const temperature = tierTemperature(config, tier)
   const text = String(temperature)
-  const cell = D.labelHeight / GLYPH_ROWS
-  const columns = textColumns(text)
-  const width = columns * cell
+  const s = verticalScale(config.blockHeight)
+  const cell = (D.labelHeight * s) / GLYPH_ROWS
   const z0 = tierBoundaryZ(config, tier)
   return {
     tier,
     temperature,
     text,
-    x: layout.bodyX + (D.bodyWidth - width) / 2,
-    zTop: z0 + (config.blockHeight - D.labelHeight) / 2 + D.labelHeight,
+    x: D.labelX,
+    zTop: z0 + (D.labelBottom + D.labelHeight) * s,
     cell,
-    columns,
+    columns: textColumns(text),
     rows: GLYPH_ROWS,
-    faceY: -D.labelDepth,
+    faceY: D.labelDepth,
   }
 }
 
 /**
- * Raised label pixels as boxes, merging horizontal runs to keep the union small.
- * Each run grows by a small overlap so diagonally touching pixels share volume,
- * not just an edge, and the union stays a single manifold shell.
+ * Engraved label pixels as cutting boxes, merging horizontal runs to keep the
+ * boolean small. Each run grows by a small overlap so diagonally touching
+ * pixels share volume, not just an edge, and the engraving stays one pocket.
  */
 const PIXEL_OVERLAP = 0.1
 const labelBoxes = (label: TowerLabel): readonly Box[] => {
@@ -130,10 +137,10 @@ const labelBoxes = (label: TowerLabel): readonly Box[] => {
       if (runStart === null) return
       boxes.push({
         x: label.x + runStart * label.cell - PIXEL_OVERLAP,
-        y: label.faceY,
+        y: -CUT_MARGIN,
         z: label.zTop - (row + 1) * label.cell - PIXEL_OVERLAP,
         w: (end - runStart + 1) * label.cell + 2 * PIXEL_OVERLAP,
-        d: D.labelDepth,
+        d: CUT_MARGIN + D.labelDepth,
         h: label.cell + 2 * PIXEL_OVERLAP,
       })
     }
@@ -149,74 +156,135 @@ const labelBoxes = (label: TowerLabel): readonly Box[] => {
   return boxes
 }
 
-/** Bridge pillars and deck, plus the label body. The eave and cones are not boxes. */
-const tierBoxes = (z0: number, h: number, layout: TierLayout): readonly Box[] => [
-  { x: layout.bridgeX, y: 0, z: z0, w: D.bridgePillarWidth, d: D.depth, h: h - D.bridgeThickness },
-  { x: layout.bridgeX + D.bridgePillarWidth + D.bridgeGap, y: 0, z: z0, w: D.bridgePillarWidth, d: D.depth, h: h - D.bridgeThickness },
-  { x: layout.bridgeX, y: 0, z: z0 + h - D.bridgeThickness, w: BRIDGE_WIDTH, d: D.depth, h: D.bridgeThickness },
-  { x: layout.bodyX, y: 0, z: z0, w: D.bodyWidth, d: D.depth, h },
-]
+/** Half depth of the plate at `x`: wide pads at both ends, a waist under the tiers, cosine transitions. */
+const plateHalfDepth = (x: number): number => {
+  const pad = D.platePadDepth / 2
+  const waist = D.plateWaistDepth / 2
+  const leftEnd = D.plateStart + D.platePadLength
+  const rightEnd = D.plateEnd - D.platePadLength
+  const blend = (t: number) => (1 - Math.cos(Math.PI * Math.min(1, Math.max(0, t)))) / 2
+  if (x < leftEnd + D.plateTransition) return pad - (pad - waist) * blend((x - leftEnd) / D.plateTransition)
+  if (x > rightEnd - D.plateTransition) return pad - (pad - waist) * blend((rightEnd - x) / D.plateTransition)
+  return waist
+}
+
+const platePolygon = (): Point[] => {
+  const steps = 60
+  const xs = Array.from({ length: steps + 1 }, (_, i) => D.plateStart + ((D.plateEnd - D.plateStart) * i) / steps)
+  const centre = D.depth / 2
+  const front = xs.map((x): Point => [x, centre - plateHalfDepth(x)])
+  const back = [...xs].reverse().map((x): Point => [x, centre + plateHalfDepth(x)])
+  return [...front, ...back]
+}
 
 /** Generates the parametric tower (ADR-0006) and returns a plain triangle mesh plus label metadata. */
 export const buildTower = (wasm: ManifoldModule, config: TowerConfig): TowerMesh => {
   const { Manifold, CrossSection } = wasm
-  const parts: InstanceType<typeof Manifold>[] = []
-  const box = ({ x, y, z, w, d, h }: Box) => parts.push(Manifold.cube([w, d, h], false).translate(x, y, z))
+  type Solid = InstanceType<typeof Manifold>
+  const garbage: Solid[] = []
+  const keep = (solid: Solid): Solid => {
+    garbage.push(solid)
+    return solid
+  }
+  const box = ({ x, y, z, w, d, h }: Box): Solid => keep(Manifold.cube([w, d, h], false).translate(x, y, z))
+  /** Extrudes an (x, z) polygon along y from `y0`. */
+  const extrudeXZ = (points: readonly Point[], y0: number, length: number): Solid => {
+    const section = new CrossSection([points.map(([x, z]) => [x, z] as [number, number])])
+    const solid = keep(Manifold.extrude(section, length).rotate(90, 0, 0).translate(0, y0 + length, 0))
+    section.delete()
+    return solid
+  }
+  /** Extrudes a (z, y) polygon along x from `x0`. */
+  const extrudeYZ = (points: readonly Point[], x0: number, length: number): Solid => {
+    const section = new CrossSection([points.map(([z, y]) => [z, y] as [number, number])])
+    const solid = keep(Manifold.extrude(section, length).rotate(0, -90, 0).translate(x0 + length, 0, 0))
+    section.delete()
+    return solid
+  }
+  /** Extrudes an (x, y) polygon up from `z0`. */
+  const extrudeXY = (points: readonly Point[], z0: number, height: number): Solid => {
+    const section = new CrossSection([points.map(([x, y]) => [x, y] as [number, number])])
+    const solid = keep(Manifold.extrude(section, height).translate(0, 0, z0))
+    section.delete()
+    return solid
+  }
+  /** A cylinder whose axis runs along y through the whole depth plus margins. */
+  const cylinderAlongY = (x: number, z: number, radius: number): Solid =>
+    keep(
+      Manifold.cylinder(D.depth + 2 * CUT_MARGIN, radius, radius, D.circularSegments, false)
+        .rotate(90, 0, 0)
+        .translate(x, D.depth + CUT_MARGIN, z),
+    )
 
   const h = config.blockHeight
-  const layout = tierLayout(h)
-
-  box({
-    x: -D.plateSideMargin,
-    y: -D.plateFrontMargin,
-    z: 0,
-    w: layout.width + 2 * D.plateSideMargin,
-    d: D.depth + 2 * D.plateFrontMargin,
-    h: config.baseHeight,
-  })
-
-  const labels: TowerLabel[] = []
+  const s = verticalScale(h)
+  const c = D.chamfer
   const n = tierCount(config)
-  for (let tier = 0; tier < n; tier += 1) {
-    const z0 = tierBoundaryZ(config, tier)
-    tierBoxes(z0, h, layout).forEach(box)
+  const labels = Array.from({ length: n }, (_, i) => labelLayout(config, i))
 
-    // 45° eave: flat top at the tier top, underside rising from the bridge's
-    // left pillar outwards. A right triangle in the XZ plane, extruded through
-    // the depth, whose vertical edge sits inside the pillar so the union shares
-    // volume with it instead of a coplanar face.
-    const eaveX = layout.bridgeX + D.bridgePillarWidth / 2
-    const profile = new CrossSection([
-      [
-        [eaveX, z0 + h - layout.run],
-        [eaveX, z0 + h],
-        [layout.bridgeX - layout.run, z0 + h],
-      ],
-    ])
-    parts.push(Manifold.extrude(profile, D.depth).rotate(90, 0, 0).translate(0, D.depth, 0))
-    profile.delete()
+  const tier = (label: TowerLabel): Solid => {
+    const z0 = tierBoundaryZ(config, label.tier)
+    // Side profile: flat top, overhang underside stepping up to the left tip, flat bottom.
+    const underside = D.overhangProfile.slice().reverse().map(([x, z]): Point => [x * s, z0 + z * s])
+    const sideProfile = extrudeXZ([[0, z0 + h], ...underside, [D.bodyLength, z0], [D.bodyLength, z0 + h]], 0, D.depth)
+    // Chamfered long edges: an octagon in the (z, y) plane swept along x, wound counter-clockwise.
+    const octagon: Point[] = [
+      [z0, c],
+      [z0 + c, 0],
+      [z0 + h - c, 0],
+      [z0 + h, c],
+      [z0 + h, D.depth - c],
+      [z0 + h - c, D.depth],
+      [z0 + c, D.depth],
+      [z0, D.depth - c],
+    ]
+    const chamferedBar = extrudeYZ(octagon, -CUT_MARGIN, TOWER_WIDTH + 2 * CUT_MARGIN)
+    const body = keep(Manifold.intersection([sideProfile, chamferedBar]))
 
-    // Stringing cones: each one overlaps the base of the cone above, except on the top tier.
-    const coneHeight = tier === n - 1 ? h : h + CONE_OVERLAP
-    for (const offset of [D.coneZoneWidth / 4, (3 * D.coneZoneWidth) / 4]) {
-      parts.push(
-        Manifold.cylinder(coneHeight, D.coneBaseRadius, D.coneTopRadius, D.coneSegments, false).translate(
-          layout.conesX + offset,
-          D.depth / 2,
-          z0,
-        ),
-      )
-    }
+    // Rounded nose: the bar past the body, rounded in plan and in elevation.
+    const noseBox = box({ x: D.bodyLength - CUT_MARGIN, y: -CUT_MARGIN, z: z0, w: D.noseRadius + 2 * CUT_MARGIN, d: D.depth + 2 * CUT_MARGIN, h })
+    const noseInPlan = keep(
+      Manifold.cylinder(h + 2 * CUT_MARGIN, D.noseRadius, D.noseRadius, D.circularSegments, false).translate(D.bodyLength, D.depth / 2, z0 - CUT_MARGIN),
+    )
+    const noseInElevation = cylinderAlongY(D.bodyLength, z0 + D.holeZ * s, D.noseRadius * s)
+    const nose = keep(Manifold.intersection([noseBox, noseInPlan, noseInElevation, chamferedBar]))
 
-    const label = labelLayout(config, tier, layout)
-    labels.push(label)
-    labelBoxes(label).forEach(box)
+    // Window: a slot through the depth whose left wall runs diagonally in plan.
+    const slope = (D.windowBackStart - D.windowFrontStart) / D.depth
+    const windowPlan: Point[] = [
+      [D.windowFrontStart - slope * CUT_MARGIN, -CUT_MARGIN],
+      [D.windowEnd, -CUT_MARGIN],
+      [D.windowEnd, D.depth + CUT_MARGIN],
+      [D.windowBackStart + slope * CUT_MARGIN, D.depth + CUT_MARGIN],
+    ]
+    const floor = D.windowFloor * s
+    const window = extrudeXY(windowPlan, z0 + floor, h - D.deckThickness - floor)
+
+    // Keyhole: a round hole through the depth with a narrow slot below it, and a spike standing in the slot.
+    const hole = cylinderAlongY(D.holeX, z0 + D.holeZ * s, D.holeRadius * s)
+    const slot = box({
+      x: D.holeX - (D.slotWidth * s) / 2,
+      y: -CUT_MARGIN,
+      z: z0 + D.slotFloor * s,
+      w: D.slotWidth * s,
+      d: D.depth + 2 * CUT_MARGIN,
+      h: (D.holeZ - D.slotFloor) * s,
+    })
+    const spikeBase = z0 + D.slotFloor * s - CUT_MARGIN
+    const spike = keep(
+      Manifold.cylinder(z0 + D.spikeTop * s - spikeBase, D.spikeRadius * s, 0, D.circularSegments, false).translate(D.holeX, D.depth / 2, spikeBase),
+    )
+
+    const engraving = labelBoxes(label).map(box)
+    const cut = keep(Manifold.difference([keep(Manifold.union([body, nose])), window, hole, slot, ...engraving]))
+    return keep(Manifold.union([cut, spike]))
   }
 
-  const tower = Manifold.union(parts)
+  const plate = extrudeXY(platePolygon(), 0, config.baseHeight)
+  const tower = Manifold.union([plate, ...labels.map(tier)])
   const mesh = weldMesh(tower.getMesh())
   tower.delete()
-  for (const part of parts) part.delete()
+  for (const solid of garbage) solid.delete()
 
   return { mesh, labels, height: towerHeight(config) }
 }
@@ -224,9 +292,9 @@ export const buildTower = (wasm: ManifoldModule, config: TowerConfig): TowerMesh
 /**
  * Copies the CSG output into a plain mesh, merging vertices that coincide in
  * single precision and dropping the triangles that collapse. Where a flush
- * face meets another part's edge (the eave top on the bridge deck) the
- * boolean emits two vertices a rounding error apart, which an STL cannot keep
- * distinct; welding them keeps the mesh a single closed shell.
+ * face meets another part's edge the boolean emits two vertices a rounding
+ * error apart, which an STL cannot keep distinct; welding them keeps the
+ * mesh a single closed shell.
  */
 const weldMesh = (mesh: { readonly vertProperties: Float32Array; readonly triVerts: Uint32Array; readonly numProp: number }): TriangleMesh => {
   const vertexCount = mesh.vertProperties.length / mesh.numProp
