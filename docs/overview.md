@@ -28,7 +28,7 @@ with the new assumption.
 These are checked first against TSK-001's result: a refuted assumption meets them unless the user pivots.
 
 ## Scope
-- In (Phase 1): parametric tower STL generated in the browser, with labels, PLA, PETG, ABS, ASA, TPU, HIPS, PA and PC presets, and the config encoded in the filename.
+- In (Phase 1): parametric tower STL generated in the browser, with labels, PLA, PLA+, PLA silk, PETG, ABS, ASA, TPU, HIPS, PA and PC presets, and the config encoded in the filename.
 - In (Phase 1): PrusaSlicer ASCII G-code analysis, transformation, validation and preview. Arc moves (`G2`/`G3`) are an error.
 - In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109` when the config's wait-for-temperature flag is set).
 - In (Phase 1): static hosting with an anonymous event counter.
