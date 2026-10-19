@@ -39,29 +39,43 @@ describe('transform', () => {
     const result = run(towerGcode(19))
     const inserted = result.changes.filter((c) => c.kind === 'insert')
     expect(inserted.map((c) => c.text)).toEqual([
-      `M104 S230 ${MARKER} tier 0`,
+      `M109 S230 ${MARKER} tier 0`,
       `M104 S225 ${MARKER} tier 1`,
       `M104 S220 ${MARKER} tier 2`,
     ])
-    expect(result.tiers.map((t) => t.layerZ)).toEqual([1, 7, 13])
+    expect(result.tiers.map((t) => t.startZ)).toEqual([0, 7, 13])
+    expect(result.tiers.map((t) => t.layerZ)).toEqual([0.2, 7, 13])
     const outputLines = result.text.split('\n')
     const tier1 = outputLines.indexOf(`M104 S225 ${MARKER} tier 1`)
     expect(outputLines[tier1 + 1]).toBe('G1 X10 Y10 E1 ; layer at 7')
   })
 
-  it('uses M109 when the config waits for temperature', () => {
-    const result = run(towerGcode(19), { ...config, waitForTemperature: true })
-    expect(result.changes.find((c) => c.kind === 'insert')?.text).toBe(`M109 S230 ${MARKER} tier 0`)
+  it('starts tier 0 at the first extruding move of the file, waiting, so the base prints at its temperature (ADR-0009)', () => {
+    const result = run(towerGcode(19))
+    const outputLines = result.text.split('\n')
+    const tier0 = outputLines.indexOf(`M109 S230 ${MARKER} tier 0`)
+    expect(outputLines[tier0 - 1]).toBe('G1 Z0.2')
+    expect(outputLines[tier0 + 1]).toBe('G1 X10 Y10 E1 ; layer at 0.2')
   })
 
-  it('neutralizes temperature commands at or above the first tier, keeps start G-code and turn-off', () => {
+  it('uses M109 for tiers 1 and up when the config waits for temperature', () => {
+    const result = run(towerGcode(19), { ...config, waitForTemperature: true })
+    expect(result.changes.filter((c) => c.kind === 'insert').map((c) => c.text.split(' ')[0])).toEqual(['M109', 'M109', 'M109'])
+  })
+
+  it('neutralizes temperature commands after the tier 0 command, keeps start G-code and turn-off (ADR-0009)', () => {
     const result = run(towerGcode(19, (z) => (z === 0.6 || z === 7 ? [`M104 S200 ; slicer at ${z}`] : [])))
     const neutralized = result.changes.filter((c) => c.kind === 'neutralize')
-    expect(neutralized.map((c) => c.original)).toEqual(['M104 S200 ; slicer at 7'])
+    expect(neutralized.map((c) => c.original)).toEqual(['M104 S200 ; slicer at 0.6', 'M104 S200 ; slicer at 7'])
     expect(result.text).toContain('\nM104 S215 ; start\n')
-    expect(result.text).toContain('\nM104 S200 ; slicer at 0.6\n')
+    expect(result.text).toContain('\nM109 S215 ; start\n')
     expect(result.text).toContain('\nM104 S0 ; turn off\n')
-    expect(result.text).toContain(`\n${NEUTRALIZED_PREFIX}M104 S200 ; slicer at 7\n`)
+    expect(result.text).toContain(`\n${NEUTRALIZED_PREFIX}M104 S200 ; slicer at 0.6\n`)
+  })
+
+  it('neutralizes a temperature command without a target after tier 0, as before', () => {
+    const result = run(towerGcode(19, (z) => (z === 3 ? ['M104 T0'] : [])))
+    expect(result.changes.filter((c) => c.kind === 'neutralize').map((c) => c.original)).toEqual(['M104 T0'])
   })
 
   it('neutralizes tool-indexed variants too', () => {
@@ -74,6 +88,7 @@ describe('transform', () => {
     const head = result.text.split('\n').slice(0, 4)
     expect(head.every((line) => line.startsWith(MARKER))).toBe(true)
     expect(head[1]).toBe(`${MARKER} config: temptower_v1_PLA_230to220_step5_h6_b1_m104`)
+    expect(head[2]).toBe(`${MARKER} tiers: 3 x 6 mm on a 1 mm base (230 to 220 C, step 5, tier 0 M109 wait, tiers 1+ M104 no wait)`)
     expect(head[3]).toContain('3 tier commands inserted, 0 temperature commands neutralized')
   })
 
@@ -81,7 +96,7 @@ describe('transform', () => {
     const lines = parseGcode(towerGcode(19))
     const result = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line' })
     const inserted = result.changes.filter((c) => c.kind === 'insert').map((c) => c.text)
-    expect(inserted).toEqual([tierMarkerLine(0), 'M104 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
+    expect(inserted).toEqual([tierMarkerLine(0), 'M109 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
     expect(result.text).toContain(`\n${MARKER} tier 1\nM104 S225\nG1 X10 Y10 E1 ; layer at 7\n`)
   })
 

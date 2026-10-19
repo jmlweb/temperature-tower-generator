@@ -1,0 +1,100 @@
+{
+  "toolVersion": "0.1.0",
+  "fileName": "zhop-on_rel-e_0.20.gcode",
+  "slicer": {
+    "name": "PrusaSlicer",
+    "version": "3.0.0-alpha12"
+  },
+  "input": {
+    "format": "text",
+    "binary": null
+  },
+  "profileTemperature": {
+    "value": 215,
+    "source": "slicer-config"
+  },
+  "config": {
+    "material": "PLA",
+    "startTemperature": 210,
+    "endTemperature": 200,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "configName": "temptower_v1_PLA_210to200_step5_h6_b1_m104",
+  "layers": {
+    "count": 95,
+    "typicalHeight": 0.2,
+    "maxZ": 19,
+    "expectedHeight": 19
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "severity": "warning",
+      "code": "first-layer-above-tier-0",
+      "message": "The profile heats the nozzle to 215 °C for the first layer, above tier 0's 210 °C. Most firmware does not wait for cooling, so the purge and first layers print hotter than tier 0."
+    }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "temperature": 210,
+      "startZ": 0,
+      "layerIndex": 0,
+      "layerZ": 0.2,
+      "lineIndex": 39
+    },
+    {
+      "tier": 1,
+      "temperature": 205,
+      "startZ": 7,
+      "layerIndex": 34,
+      "layerZ": 7,
+      "lineIndex": 12485
+    },
+    {
+      "tier": 2,
+      "temperature": 200,
+      "startZ": 13,
+      "layerIndex": 64,
+      "layerZ": 13,
+      "lineIndex": 21842
+    }
+  ],
+  "inserted": [
+    {
+      "lineNumber": 40,
+      "text": "M109 S210 ; [temptower] tier 0"
+    },
+    {
+      "lineNumber": 12486,
+      "text": "M104 S205 ; [temptower] tier 1"
+    },
+    {
+      "lineNumber": 21843,
+      "text": "M104 S200 ; [temptower] tier 2"
+    }
+  ],
+  "neutralized": [],
+  "chart": [
+    {
+      "z": 0,
+      "temperature": 210
+    },
+    {
+      "z": 7,
+      "temperature": 205
+    },
+    {
+      "z": 13,
+      "temperature": 200
+    },
+    {
+      "z": 19,
+      "temperature": 200
+    }
+  ],
+  "canDownload": true
+}

@@ -1,16 +1,17 @@
 import { encodeTowerConfigName } from './filename-codec.ts'
 import type { GcodeLine } from './gcode-lines.ts'
 import type { Layer, MotionAnalysis } from './motion.ts'
-import { tierBoundaryZ, tierCount, tierTemperature, Z_EPSILON, type TowerConfig } from './tower-config.ts'
+import { tierCount, tierStartZ, tierTemperature, Z_EPSILON, type TowerConfig } from './tower-config.ts'
 import { MARKER, TOOL_NAME, TOOL_VERSION } from './version.ts'
 
 export interface TierPlacement {
   readonly tier: number
   readonly temperature: number
-  readonly boundaryZ: number
+  /** Z from which the tier's temperature applies: 0 for tier 0 (ADR-0009). */
+  readonly startZ: number
   readonly layerIndex: number | null
   readonly layerZ: number | null
-  /** Input line the tier command is inserted before, or null when no layer reaches the boundary. */
+  /** Input line the tier command is inserted before, or null when no layer reaches the tier start. */
   readonly lineIndex: number | null
 }
 
@@ -25,16 +26,20 @@ export interface TransformResult {
   readonly tiers: readonly TierPlacement[]
 }
 
-/** Maps each tier to the first layer at or above its boundary. Shared formula from tower-config (ADR-0005). */
+/**
+ * Maps each tier to the first layer at or above its start. Tier 0 starts at Z 0,
+ * so it lands on layer 0, whose first extruding move is the start G-code's purge
+ * line in PrusaSlicer's stock profiles (ADR-0009). Shared formula from tower-config (ADR-0005).
+ */
 export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readonly TierPlacement[] => {
   const placements: TierPlacement[] = []
   let searchFrom = 0
   for (let tier = 0; tier < tierCount(config); tier += 1) {
-    const boundaryZ = tierBoundaryZ(config, tier)
+    const startZ = tierStartZ(config, tier)
     let found: Layer | null = null
     for (let i = searchFrom; i < layers.length; i += 1) {
       const layer = layers[i]!
-      if (layer.z >= boundaryZ - Z_EPSILON) {
+      if (layer.z >= startZ - Z_EPSILON) {
         found = layer
         searchFrom = i + 1
         break
@@ -43,7 +48,7 @@ export const planTiers = (config: TowerConfig, layers: readonly Layer[]): readon
     placements.push({
       tier,
       temperature: tierTemperature(config, tier),
-      boundaryZ,
+      startZ,
       layerIndex: found?.index ?? null,
       layerZ: found?.z ?? null,
       lineIndex: found?.firstLineIndex ?? null,
@@ -61,8 +66,11 @@ export type MarkerStyle = 'inline' | 'line'
 
 export const tierMarkerLine = (tier: number): string => `${MARKER} tier ${tier}`
 
+/** Tier 0 always waits, or layer 0 would print while the nozzle heats from the profile's temperature (ADR-0009). */
+const isWaitingTier = (config: TowerConfig, tier: number): boolean => tier === 0 || config.waitForTemperature
+
 export const tierCommand = (config: TowerConfig, tier: number, markerStyle: MarkerStyle = 'inline'): string => {
-  const command = `${config.waitForTemperature ? 'M109' : 'M104'} S${tierTemperature(config, tier)}`
+  const command = `${isWaitingTier(config, tier) ? 'M109' : 'M104'} S${tierTemperature(config, tier)}`
   return markerStyle === 'inline' ? `${command} ${tierMarkerLine(tier)}` : command
 }
 
@@ -75,7 +83,7 @@ const buildHeader = (config: TowerConfig, insertedCount: number, neutralizedCoun
   return [
     `${MARKER} ${TOOL_NAME} v${TOOL_VERSION}`,
     `${MARKER} config: ${encodeTowerConfigName(config)}`,
-    `${MARKER} tiers: ${n} x ${config.blockHeight} mm from Z=${tierBoundaryZ(config, 0)} (${first} to ${last} C, step ${config.step}, ${config.waitForTemperature ? 'M109 wait' : 'M104 no wait'})`,
+    `${MARKER} tiers: ${n} x ${config.blockHeight} mm on a ${config.baseHeight} mm base (${first} to ${last} C, step ${config.step}, tier 0 M109 wait, tiers 1+ ${config.waitForTemperature ? 'M109 wait' : 'M104 no wait'})`,
     `${MARKER} changes: ${insertedCount} tier commands inserted, ${neutralizedCount} temperature commands neutralized, start G-code kept`,
   ]
 }
@@ -101,11 +109,12 @@ export const transformGcode = ({ lines, motion, config, markerStyle = 'inline' }
     insertBefore.set(placement.lineIndex, list)
   }
 
-  const firstBoundary = tierBoundaryZ(config, 0)
+  // Everything after the tier 0 command is the tower's; the start G-code before it is kept (ADR-0009).
+  const tierZeroLine = tiers[0]?.lineIndex ?? null
   const neutralize = new Set<number>()
   for (const temperatureLine of motion.temperatureLines) {
     const isTurnOff = temperatureLine.target !== null && temperatureLine.target <= 0
-    if (!isTurnOff && temperatureLine.layerZ >= firstBoundary - Z_EPSILON) neutralize.add(temperatureLine.lineIndex)
+    if (!isTurnOff && tierZeroLine !== null && temperatureLine.lineIndex > tierZeroLine) neutralize.add(temperatureLine.lineIndex)
   }
 
   const ending = lines.find((line) => line.ending !== '')?.ending ?? '\n'

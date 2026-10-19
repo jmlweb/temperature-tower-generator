@@ -1,0 +1,18 @@
+{
+  "gcode": "zhop-on_rel-e_0.20.gcode",
+  "config": {
+    "material": "PLA",
+    "startTemperature": 210,
+    "endTemperature": 200,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "warnings": [
+      "first-layer-above-tier-0"
+    ]
+  },
+  "notes": "Same sliced file as zhop-on_rel-e_0.20 (215 °C first layer) with tier 0 at 210 °C, so M109 S210 does not cool the nozzle before the purge (ADR-0009)."
+}

@@ -30,16 +30,17 @@ Slicer-Agnostic Temperature Tower Generator is a free, 100% client-side browser 
   - An inserted header line starts with `; [temptower]`.
   - A neutralized input line is prefixed with `; [temptower] neutralized: `.
   - All other input lines appear byte-for-byte.
-- Only `M104`/`M109` lines (including `T`-indexed variants) whose layer Z is at or above the first tier boundary are neutralized. Start G-code and lines below the first tier boundary are kept. A fixture covers both cases (ADR-0002).
+- Tier 0 starts at Z 0: its command is an `M109` (whatever `waitForTemperature` says) before the first extruding move of the file, so the purge and base print at tier 0's temperature (ADR-0009).
+- Only `M104`/`M109` lines (including `T`-indexed variants) after the tier 0 command are neutralized, except turn-offs (`S0`). The start G-code before it is kept. A fixture covers both cases (ADR-0002, ADR-0009).
 - Layer boundaries come from motion state; slicer markers never override them and a disagreement emits a warning (ADR-0003).
 - Every supported G-code feature (Z-hop, relative E, `G92 E0`, arcs) has at least one fixture with a golden output (ADR-0003, ADR-0008).
 - The slicer reader registry in `packages/core` holds only the PrusaSlicer reader until Phase 2 starts. Phase 2 starts after the first external failing-G-code report is triaged (ADR-0003).
-- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007, and the arc line removed, ADR-0008), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
+- Every validation check is in the `error` or `warning` list of ADR-0004 (with the binary line replaced by `binary-gcode-unreadable`, ADR-0007, and the arc line removed, ADR-0008, and `first-layer-above-tier-0` added, ADR-0009), and has a fixture that triggers it. An `error` fixture produces no output file (ADR-0004).
 - The download control is reachable only after the report renders (ADR-0004).
 - Output G-code starts with a `; [temptower]` header block holding the tool version, tower config and change summary (ADR-0004).
 - A `.bgcode` upload is decoded in the worker by the pure TypeScript codec in `packages/core/src/bgcode`; the transform runs on the decoded text, and the output is re-encoded with every non-G-code block copied byte-for-byte and the input's G-code compression and encoding (ADR-0007).
 - In binary output the tier marker is its own comment line `; [temptower] tier <i>` before a bare `M104`/`M109`, because MeatPack drops inline comments; the ADR-0002 property test runs over the decoded text of a binary input too (ADR-0007).
-- Geometry and transform read tier boundaries from one shared function over the tower config; no second implementation of `b + i·h` exists (ADR-0005).
+- Geometry and transform read tier boundaries from one shared function over the tower config; no second implementation of `b + i·h` exists (ADR-0005). The transform reads tier starts through `tierStartZ`, which is 0 for tier 0 and `tierBoundaryZ` otherwise (ADR-0009).
 - The STL base name encodes the tower config, and a round-trip test proves encode/decode is lossless (ADR-0005).
 - Config recovery has tests for three cases: a G-code name that keeps the STL base name, a renamed G-code with object-label comments, and neither (manual entry) (ADR-0005).
 - Geometry tests assert that the mesh is manifold, its height is `b + n·h`, and each tier's label shows that tier's temperature (ADR-0006).

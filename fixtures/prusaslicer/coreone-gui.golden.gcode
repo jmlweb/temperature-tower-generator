@@ -1,6 +1,6 @@
 ; [temptower] Slicer-Agnostic Temperature Tower Generator v0.1.0
 ; [temptower] config: temptower_v1_PLA_230to190_step5_h10_b2_m104
-; [temptower] tiers: 9 x 10 mm from Z=2 (230 to 190 C, step 5, M104 no wait)
+; [temptower] tiers: 9 x 10 mm on a 2 mm base (230 to 190 C, step 5, tier 0 M109 wait, tiers 1+ M104 no wait)
 ; [temptower] changes: 9 tier commands inserted, 0 temperature commands neutralized, start G-code kept
 ; 
 M73 P0 R88
@@ -324,6 +324,8 @@ M591 S0
 ;
 G92 E0
 G1 E2 F2400
+; [temptower] tier 0
+M109 S230
 G0 E5 X235 Z0.2 F500
 G0 X225 E4 F500
 G0 X215 E4 F650
@@ -2521,8 +2523,6 @@ M204 P6000
 ;TYPE:Perimeter
 ;WIDTH:0.449999
 G1 F15000
-; [temptower] tier 0
-M104 S230
 G1 X146.368 Y103.632 E1.51889
 G1 X146.368 Y116.368 E.45265
 G1 X103.632 Y116.368 E1.51889

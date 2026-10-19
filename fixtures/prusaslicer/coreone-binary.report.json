@@ -16,8 +16,8 @@
       "thumbnails": 1
     }
   },
-  "baseTemperature": {
-    "value": 225,
+  "profileTemperature": {
+    "value": 230,
     "source": "slicer-config"
   },
   "config": {
@@ -42,15 +42,15 @@
     {
       "tier": 0,
       "temperature": 230,
-      "boundaryZ": 1,
-      "layerIndex": 4,
-      "layerZ": 1,
-      "lineIndex": 2488
+      "startZ": 0,
+      "layerIndex": 0,
+      "layerZ": 0.2,
+      "lineIndex": 62
     },
     {
       "tier": 1,
       "temperature": 225,
-      "boundaryZ": 7,
+      "startZ": 7,
       "layerIndex": 34,
       "layerZ": 7,
       "lineIndex": 11889
@@ -58,7 +58,7 @@
     {
       "tier": 2,
       "temperature": 220,
-      "boundaryZ": 13,
+      "startZ": 13,
       "layerIndex": 64,
       "layerZ": 13,
       "lineIndex": 20280
@@ -66,12 +66,12 @@
   ],
   "inserted": [
     {
-      "lineNumber": 2489,
+      "lineNumber": 63,
       "text": "; [temptower] tier 0"
     },
     {
-      "lineNumber": 2489,
-      "text": "M104 S230"
+      "lineNumber": 63,
+      "text": "M109 S230"
     },
     {
       "lineNumber": 11890,
@@ -90,14 +90,16 @@
       "text": "M104 S220"
     }
   ],
-  "neutralized": [],
+  "neutralized": [
+    {
+      "lineNumber": 484,
+      "text": "; [temptower] neutralized: M104 S225",
+      "original": "M104 S225"
+    }
+  ],
   "chart": [
     {
       "z": 0,
-      "temperature": 225
-    },
-    {
-      "z": 1,
       "temperature": 230
     },
     {

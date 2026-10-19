@@ -16,7 +16,7 @@
       "thumbnails": 4
     }
   },
-  "baseTemperature": {
+  "profileTemperature": {
     "value": 210,
     "source": "slicer-config"
   },
@@ -42,15 +42,15 @@
     {
       "tier": 0,
       "temperature": 230,
-      "boundaryZ": 2,
-      "layerIndex": 9,
-      "layerZ": 2,
-      "lineIndex": 2519
+      "startZ": 0,
+      "layerIndex": 0,
+      "layerZ": 0.2,
+      "lineIndex": 322
     },
     {
       "tier": 1,
       "temperature": 225,
-      "boundaryZ": 12,
+      "startZ": 12,
       "layerIndex": 59,
       "layerZ": 12,
       "lineIndex": 13715
@@ -58,7 +58,7 @@
     {
       "tier": 2,
       "temperature": 220,
-      "boundaryZ": 22,
+      "startZ": 22,
       "layerIndex": 109,
       "layerZ": 22,
       "lineIndex": 24114
@@ -66,7 +66,7 @@
     {
       "tier": 3,
       "temperature": 215,
-      "boundaryZ": 32,
+      "startZ": 32,
       "layerIndex": 159,
       "layerZ": 32,
       "lineIndex": 34742
@@ -74,7 +74,7 @@
     {
       "tier": 4,
       "temperature": 210,
-      "boundaryZ": 42,
+      "startZ": 42,
       "layerIndex": 209,
       "layerZ": 42,
       "lineIndex": 44976
@@ -82,7 +82,7 @@
     {
       "tier": 5,
       "temperature": 205,
-      "boundaryZ": 52,
+      "startZ": 52,
       "layerIndex": 259,
       "layerZ": 52,
       "lineIndex": 55461
@@ -90,7 +90,7 @@
     {
       "tier": 6,
       "temperature": 200,
-      "boundaryZ": 62,
+      "startZ": 62,
       "layerIndex": 309,
       "layerZ": 62,
       "lineIndex": 66202
@@ -98,7 +98,7 @@
     {
       "tier": 7,
       "temperature": 195,
-      "boundaryZ": 72,
+      "startZ": 72,
       "layerIndex": 359,
       "layerZ": 72,
       "lineIndex": 77139
@@ -106,7 +106,7 @@
     {
       "tier": 8,
       "temperature": 190,
-      "boundaryZ": 82,
+      "startZ": 82,
       "layerIndex": 409,
       "layerZ": 82,
       "lineIndex": 87525
@@ -114,12 +114,12 @@
   ],
   "inserted": [
     {
-      "lineNumber": 2520,
+      "lineNumber": 323,
       "text": "; [temptower] tier 0"
     },
     {
-      "lineNumber": 2520,
-      "text": "M104 S230"
+      "lineNumber": 323,
+      "text": "M109 S230"
     },
     {
       "lineNumber": 13716,
@@ -190,10 +190,6 @@
   "chart": [
     {
       "z": 0,
-      "temperature": 210
-    },
-    {
-      "z": 2,
       "temperature": 230
     },
     {

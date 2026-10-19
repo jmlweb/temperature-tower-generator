@@ -1,0 +1,12 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "notes": "Filament temperature 205 °C for other layers and 215 °C for the first, so PrusaSlicer emits an M104 at layer 2; it comes after the tier 0 command and is neutralized (ADR-0009)."
+}

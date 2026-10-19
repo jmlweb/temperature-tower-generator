@@ -13,6 +13,7 @@ export {
   tierTemperature,
   tierTemperatures,
   tierBoundaryZ,
+  tierStartZ,
   towerHeight,
   validateTowerConfig,
   type TowerConfig,
@@ -28,6 +29,7 @@ export { isBinaryGcode, loadGcodeFile, loadGcodeText, type LoadedGcode, type Loa
 export * from './bgcode/index.ts'
 export { ValidationCode, Severity, validateGcode, hasErrors, type ValidationIssue } from './validation.ts'
 export { planTiers, tierCommand, tierMarkerLine, transformGcode, NEUTRALIZED_PREFIX, type MarkerStyle, type TierPlacement, type Change, type TransformResult } from './transform.ts'
-export { buildReport, buildChart, BaseTemperatureSource, type Report, type ReportInput, type ChartPoint, type ReportLine, type NeutralizedLine } from './report.ts'
+export { ProfileTemperatureSource, profileTemperature, type ProfileTemperature } from './profile-temperature.ts'
+export { buildReport, buildChart, type Report, type ReportInput, type ChartPoint, type ReportLine, type NeutralizedLine } from './report.ts'
 export { ConfigSource, recoverTowerConfig, type RecoveredConfig } from './recover-config.ts'
 export { inspectGcode, processGcode, outputFileName, type Inspection, type ProcessInput, type ProcessResult } from './process.ts'

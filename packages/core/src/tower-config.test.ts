@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Material, tierBoundaryZ, tierCount, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
+import { Material, tierBoundaryZ, tierCount, tierStartZ, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
 
 const pla: TowerConfig = {
   material: Material.PLA,
@@ -27,6 +27,12 @@ describe('tower config', () => {
     expect(tierBoundaryZ(pla, 3)).toBe(32)
     expect(towerHeight(pla)).toBe(92)
     expect(tierBoundaryZ({ ...pla, blockHeight: 7.5, baseHeight: 1.2 }, 2)).toBe(16.2)
+  })
+
+  it('starts tier 0 at Z 0 and every other tier at its boundary (ADR-0009)', () => {
+    expect(tierStartZ(pla, 0)).toBe(0)
+    expect(tierStartZ(pla, 1)).toBe(tierBoundaryZ(pla, 1))
+    expect(tierStartZ(pla, 3)).toBe(tierBoundaryZ(pla, 3))
   })
 
   it('rejects impossible configs', () => {

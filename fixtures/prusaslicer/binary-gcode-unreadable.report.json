@@ -9,7 +9,7 @@
     "format": "binary",
     "binary": null
   },
-  "baseTemperature": {
+  "profileTemperature": {
     "value": null,
     "source": "unknown"
   },
@@ -41,10 +41,6 @@
   "inserted": [],
   "neutralized": [],
   "chart": [
-    {
-      "z": 0,
-      "temperature": null
-    },
     {
       "z": 19,
       "temperature": null

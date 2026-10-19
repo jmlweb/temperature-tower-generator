@@ -103,6 +103,12 @@ export const tierTemperatures = (config: TowerConfig): readonly number[] =>
 export const tierBoundaryZ = (config: TowerConfig, tier: number): number =>
   roundZ(config.baseHeight + tier * config.blockHeight)
 
+/**
+ * Z from which the transform gives tier `i` its temperature: 0 for tier 0, so
+ * the base prints at the tier 0 temperature (ADR-0009), else `tierBoundaryZ`.
+ */
+export const tierStartZ = (config: TowerConfig, tier: number): number => (tier === 0 ? 0 : tierBoundaryZ(config, tier))
+
 /** `b + n·h`: the top of the tower. */
 export const towerHeight = (config: TowerConfig): number => tierBoundaryZ(config, tierCount(config))
 

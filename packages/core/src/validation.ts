@@ -1,9 +1,10 @@
 import type { MotionAnalysis } from './motion.ts'
 import { typicalLayerHeight } from './motion.ts'
+import { profileTemperature } from './profile-temperature.ts'
 import type { SlicerInfo } from './slicers/types.ts'
-import { findPreset, Material, tierTemperatures, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
+import { findPreset, Material, tierTemperature, tierTemperatures, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
 
-/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 (binary input) and ADR-0008 (arcs allowed). */
+/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 (binary input), ADR-0008 (arcs allowed) and ADR-0009 (first layer above tier 0). */
 export const ValidationCode = {
   NO_EXTRUSION: 'no-extrusion',
   VARIABLE_LAYER_HEIGHT: 'variable-layer-height',
@@ -14,6 +15,7 @@ export const ValidationCode = {
   TEMPERATURE_OUTSIDE_PRESET: 'temperature-outside-preset',
   MARKER_MISMATCH: 'marker-mismatch',
   MULTI_TOOL: 'multi-tool',
+  FIRST_LAYER_ABOVE_TIER_0: 'first-layer-above-tier-0',
 } as const
 export type ValidationCode = (typeof ValidationCode)[keyof typeof ValidationCode]
 
@@ -82,6 +84,13 @@ export const validateGcode = ({ motion, slicer, config, binaryError }: Validatio
     if (outside.length > 0) {
       issues.push(warning(ValidationCode.TEMPERATURE_OUTSIDE_PRESET, `Tier temperatures ${outside.join(', ')} °C are outside the ${preset.label} range ${preset.minTemperature}–${preset.maxTemperature} °C.`))
     }
+  }
+
+  // M109 S waits only while heating, so a hotter start leaves layer 0 printing above tier 0 (ADR-0009).
+  const profile = profileTemperature(slicer, motion).value
+  const tierZero = tierTemperature(config, 0)
+  if (profile !== null && profile > tierZero) {
+    issues.push(warning(ValidationCode.FIRST_LAYER_ABOVE_TIER_0, `The profile heats the nozzle to ${profile} °C for the first layer, above tier 0's ${tierZero} °C. Most firmware does not wait for cooling, so the purge and first layers print hotter than tier 0.`))
   }
 
   if (slicer.layerMarkers.length > 0) {

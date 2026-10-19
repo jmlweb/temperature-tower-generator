@@ -1,7 +1,7 @@
 ; [temptower] Slicer-Agnostic Temperature Tower Generator v0.1.0
 ; [temptower] config: temptower_v1_PLA_230to220_step5_h6_b1_m104
-; [temptower] tiers: 3 x 6 mm from Z=1 (230 to 220 C, step 5, M104 no wait)
-; [temptower] changes: 3 tier commands inserted, 0 temperature commands neutralized, start G-code kept
+; [temptower] tiers: 3 x 6 mm on a 1 mm base (230 to 220 C, step 5, tier 0 M109 wait, tiers 1+ M104 no wait)
+; [temptower] changes: 3 tier commands inserted, 1 temperature commands neutralized, start G-code kept
 ; external perimeters extrusion width = 0.45mm
 ; perimeters extrusion width = 0.45mm
 ; infill extrusion width = 0.45mm
@@ -64,6 +64,8 @@ M591 S0
 G92 E0
 G1 E2 F2400
 M73 P0 R17
+; [temptower] tier 0
+M109 S230
 G0 E5 X235 Z0.2 F500
 G0 X225 E4 F500
 G0 X215 E4 F650
@@ -485,7 +487,7 @@ G1 X106.541 Y121.984 Z.2 F21000
 G1 X106.082 Y96.632 Z.643
 ;AFTER_LAYER_CHANGE
 ;0.4
-M104 S225
+; [temptower] neutralized: M104 S225
 G1 Z.4 F720
 G1 E.7 F1500
 M204 P6000
@@ -2490,8 +2492,6 @@ M204 P6000
 ;TYPE:Perimeter
 ;WIDTH:0.449999
 G1 F15000
-; [temptower] tier 0
-M104 S230
 G1 X107.555 Y96.632 E.04986
 G1 X108.145 Y96.707 E.02013
 G1 X108.549 Y96.876 E.01482

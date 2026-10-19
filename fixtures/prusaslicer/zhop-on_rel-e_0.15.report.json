@@ -9,7 +9,7 @@
     "format": "text",
     "binary": null
   },
-  "baseTemperature": {
+  "profileTemperature": {
     "value": 215,
     "source": "slicer-config"
   },
@@ -41,15 +41,15 @@
     {
       "tier": 0,
       "temperature": 230,
-      "boundaryZ": 1,
-      "layerIndex": 6,
-      "layerZ": 1.1,
-      "lineIndex": 4142
+      "startZ": 0,
+      "layerIndex": 0,
+      "layerZ": 0.2,
+      "lineIndex": 39
     },
     {
       "tier": 1,
       "temperature": 225,
-      "boundaryZ": 7,
+      "startZ": 7,
       "layerIndex": 46,
       "layerZ": 7.1,
       "lineIndex": 16003
@@ -57,7 +57,7 @@
     {
       "tier": 2,
       "temperature": 220,
-      "boundaryZ": 13,
+      "startZ": 13,
       "layerIndex": 86,
       "layerZ": 13.1,
       "lineIndex": 27797
@@ -65,8 +65,8 @@
   ],
   "inserted": [
     {
-      "lineNumber": 4143,
-      "text": "M104 S230 ; [temptower] tier 0"
+      "lineNumber": 40,
+      "text": "M109 S230 ; [temptower] tier 0"
     },
     {
       "lineNumber": 16004,
@@ -81,10 +81,6 @@
   "chart": [
     {
       "z": 0,
-      "temperature": 215
-    },
-    {
-      "z": 1,
       "temperature": 230
     },
     {

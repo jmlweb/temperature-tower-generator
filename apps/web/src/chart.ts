@@ -31,11 +31,11 @@ export const renderChart = (points: readonly ChartPoint[], tiers: readonly TierP
 
   // Tier bands and their boundaries.
   tiers.forEach((tier, index) => {
-    const next = tiers[index + 1]?.boundaryZ ?? topZ
-    const band = svgEl('rect', { x: MARGIN.left, y: y(next), width: plotWidth, height: Math.max(0, y(tier.boundaryZ) - y(next)), class: `chart-band chart-band-${index % 2}` })
-    band.append(svgEl('title', {}, `Tier ${tier.tier}: ${tier.temperature} °C from Z ${tier.boundaryZ} mm${tier.layerZ === null ? ' (not reached)' : ` (layer at ${tier.layerZ} mm)`}`))
+    const next = tiers[index + 1]?.startZ ?? topZ
+    const band = svgEl('rect', { x: MARGIN.left, y: y(next), width: plotWidth, height: Math.max(0, y(tier.startZ) - y(next)), class: `chart-band chart-band-${index % 2}` })
+    band.append(svgEl('title', {}, `Tier ${tier.tier}: ${tier.temperature} °C from Z ${tier.startZ} mm${tier.layerZ === null ? ' (not reached)' : ` (layer at ${tier.layerZ} mm)`}`))
     svg.append(band)
-    if (y(tier.boundaryZ) - y(next) >= 16) {
+    if (y(tier.startZ) - y(next) >= 16) {
       svg.append(svgEl('text', { x: MARGIN.left + plotWidth - 8, y: y(next) + 13, class: 'chart-tier-label', 'text-anchor': 'end' }, `${tier.temperature} °C`))
     }
   })

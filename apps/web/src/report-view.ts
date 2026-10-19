@@ -40,11 +40,12 @@ const describeInput = (input: Report['input']): { value: string; detail?: string
 
 /** Everything ADR-0004 asks the user to see before downloading. */
 export const renderReport = (report: Report): HTMLElement => {
-  const baseSource = {
+  const profileSource = {
     'slicer-config': 'from the slicer config block',
     'start-gcode': 'from the first temperature command in the start G-code',
     unknown: 'not found',
-  }[report.baseTemperature.source]
+  }[report.profileTemperature.source]
+  const tierZero = report.tiers[0]?.temperature
   const input = describeInput(report.input)
 
   return el(
@@ -56,7 +57,7 @@ export const renderReport = (report: Report): HTMLElement => {
       fact('File', report.fileName),
       fact('Slicer', report.slicer.name === 'unknown' ? 'Not recognised' : `${report.slicer.name} ${report.slicer.version ?? ''}`, report.slicer.name === 'unknown' ? 'Phase 1 supports PrusaSlicer' : undefined),
       fact('Input', input.value, input.detail),
-      fact('Base temperature', report.baseTemperature.value === null ? 'Not found' : `${report.baseTemperature.value} °C`, baseSource),
+      fact('Profile first layer', report.profileTemperature.value === null ? 'Not found' : `${report.profileTemperature.value} °C`, tierZero === undefined ? profileSource : `${profileSource}; replaced by tier 0 at ${tierZero} °C`),
       fact('Layers', `${report.layers.count} × ${report.layers.typicalHeight} mm`, `top at ${report.layers.maxZ} mm, expected ${report.layers.expectedHeight} mm`),
       fact('Tower config', report.configName),
     ),
@@ -70,7 +71,7 @@ export const renderReport = (report: Report): HTMLElement => {
           el(
             'table',
             { class: 'tiers' },
-            el('thead', {}, el('tr', {}, el('th', {}, 'Tier'), el('th', { class: 'num' }, 'Temperature'), el('th', { class: 'num' }, 'Boundary Z'), el('th', { class: 'num' }, 'Layer Z'), el('th', { class: 'num' }, 'Line'))),
+            el('thead', {}, el('tr', {}, el('th', {}, 'Tier'), el('th', { class: 'num' }, 'Temperature'), el('th', { class: 'num' }, 'Starts at Z'), el('th', { class: 'num' }, 'Layer Z'), el('th', { class: 'num' }, 'Line'))),
             el(
               'tbody',
               {},
@@ -80,7 +81,7 @@ export const renderReport = (report: Report): HTMLElement => {
                   {},
                   el('td', {}, String(tier.tier)),
                   el('td', { class: 'num' }, `${tier.temperature} °C`),
-                  el('td', { class: 'num' }, `${tier.boundaryZ} mm`),
+                  el('td', { class: 'num' }, `${tier.startZ} mm`),
                   el('td', { class: 'num' }, tier.layerZ === null ? 'not reached' : `${tier.layerZ} mm`),
                   el('td', { class: 'num' }, tier.lineIndex === null ? '–' : String(tier.lineIndex + 1)),
                 ),

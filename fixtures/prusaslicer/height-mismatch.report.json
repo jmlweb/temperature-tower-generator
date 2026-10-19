@@ -9,7 +9,7 @@
     "format": "text",
     "binary": null
   },
-  "baseTemperature": {
+  "profileTemperature": {
     "value": 215,
     "source": "slicer-config"
   },
@@ -42,12 +42,8 @@
   "neutralized": [],
   "chart": [
     {
-      "z": 0,
-      "temperature": 215
-    },
-    {
       "z": 31,
-      "temperature": 215
+      "temperature": null
     }
   ],
   "canDownload": false

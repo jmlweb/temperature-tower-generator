@@ -1,6 +1,6 @@
 # 0002. Line-preserving pure transform over parsed G-code
 
-**Status:** accepted
+**Status:** accepted; the neutralize rule is superseded by ADR-0009, which neutralizes every non-turn-off `M104`/`M109` after the tier 0 command and inserts tier 0 before the first extruding move
 
 ## Context
 The users' main complaint about the formula workaround is that it fails silently: temperatures do not change, or tiers start at the wrong layer. Trust depends on the user seeing that the tool changed only what it reported. The core logic must also be testable quickly in isolation, without a browser.

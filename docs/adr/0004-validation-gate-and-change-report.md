@@ -1,6 +1,6 @@
 # 0004. Validation gate and change report before any download
 
-**Status:** accepted; the binary G-code error is superseded by ADR-0007, which decodes `.bgcode` and keeps an error only for files that cannot be decoded (`binary-gcode-unreadable`)
+**Status:** accepted; the binary G-code error is superseded by ADR-0007, which decodes `.bgcode` and keeps an error only for files that cannot be decoded (`binary-gcode-unreadable`); ADR-0009 adds the `first-layer-above-tier-0` warning
 
 ## Context
 The differentiator against the formula workaround is verifiability: the user sees every change before printing. A wrong G-code costs a failed multi-hour print and lost filament. Some inputs make a correct tower impossible.

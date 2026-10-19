@@ -64,6 +64,8 @@ interface Variant {
   readonly arcs?: boolean
   readonly duplicate?: number
   readonly completeObjects?: boolean
+  /** Filament `temperature` (other layers) when it should differ from `first_layer_temperature`. */
+  readonly temperature?: number
   /** Keep this thumbnail spec (e.g. `16x16/QOI`) and convert the slice to `.bgcode`. */
   readonly binary?: string
   readonly expect?: { errors?: string[]; warnings?: string[] }
@@ -91,6 +93,14 @@ const variants: readonly Variant[] = [
     ),
   ),
   { name: 'arc-moves', layer: '0.20', zhop: 0.4, relativeE: true, arcs: true, notes: 'Arc fitting on, as PrusaSlicer 2.9.6 Core One and all 3.0 stock profiles have it; arcs are ordinary moves since ADR-0008.' },
+  {
+    name: 'other-layers-temperature',
+    layer: '0.20',
+    zhop: 0.4,
+    relativeE: true,
+    temperature: 205,
+    notes: 'Filament temperature 205 °C for other layers and 215 °C for the first, so PrusaSlicer emits an M104 at layer 2; it comes after the tier 0 command and is neutralized (ADR-0009).',
+  },
   { name: 'multiple-objects', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, expect: { errors: ['multiple-objects'] } },
   { name: 'sequential-printing', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, completeObjects: true, expect: { errors: ['multiple-objects'] } },
   {
@@ -144,6 +154,7 @@ const sliceVariant = (variant: Variant, stlPath: string): void => {
     printer.start_gcode = printer.start_gcode!.replace('M83 ; extruder relative mode', 'M82 ; extruder absolute mode')
   }
   patch(config, 'complete_objects', variant.completeObjects ?? false)
+  if (variant.temperature !== undefined) patch(config, 'temperature', [variant.temperature])
   patch(config, 'thumbnails', variant.binary ?? '')
   const configPath = join(WORK_DIR, `${variant.name}.json`)
   writeFileSync(configPath, JSON.stringify(config))
@@ -237,6 +248,13 @@ const main = async (): Promise<void> => {
   writeSynthetic('marker-mismatch', `${syntheticTower({ top: 19 })};LAYER_CHANGE\n;Z:40\n`, { warnings: ['marker-mismatch'] })
 
   writeDerived('height-mismatch', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, blockHeight: 10 }, { errors: ['height-mismatch'] }, 'Same sliced file as zhop-on_rel-e_0.20 with a config that expects a 31 mm tower.')
+  writeDerived(
+    'first-layer-above-tier-0',
+    'zhop-on_rel-e_0.20.gcode',
+    { ...FIXTURE_CONFIG, startTemperature: 210, endTemperature: 200 },
+    { warnings: ['first-layer-above-tier-0'] },
+    'Same sliced file as zhop-on_rel-e_0.20 (215 °C first layer) with tier 0 at 210 °C, so M109 S210 does not cool the nozzle before the purge (ADR-0009).',
+  )
   writeDerived('temperature-outside-preset', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, startTemperature: 240, endTemperature: 230 }, { warnings: ['temperature-outside-preset'] }, 'Same sliced file as zhop-on_rel-e_0.20 with tiers above the PLA preset range.')
 }
 

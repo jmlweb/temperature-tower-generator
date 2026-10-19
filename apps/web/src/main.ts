@@ -94,7 +94,7 @@ const reportPlaceholder = el(
   el(
     'ul',
     {},
-    el('li', {}, 'the slicer, base temperature and layer heights'),
+    el('li', {}, 'the slicer, the profile temperature tier 0 replaces, and layer heights'),
     el('li', {}, 'every tier boundary with its temperature'),
     el('li', {}, 'each inserted and neutralized line'),
   ),
