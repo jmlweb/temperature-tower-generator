@@ -15,6 +15,7 @@ export {
   tierBoundaryZ,
   tierStartZ,
   towerHeight,
+  temperaturesOutsidePreset,
   validateTowerConfig,
   type TowerConfig,
   type MaterialPreset,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Material, tierBoundaryZ, tierCount, tierStartZ, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
+import { Material, temperaturesOutsidePreset, tierBoundaryZ, tierCount, tierStartZ, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
 
 const pla: TowerConfig = {
   material: Material.PLA,
@@ -27,6 +27,12 @@ describe('tower config', () => {
     expect(tierBoundaryZ(pla, 3)).toBe(32)
     expect(towerHeight(pla)).toBe(92)
     expect(tierBoundaryZ({ ...pla, blockHeight: 7.5, baseHeight: 1.2 }, 2)).toBe(16.2)
+  })
+
+  it('lists tier temperatures outside the preset range, none for Custom', () => {
+    expect(temperaturesOutsidePreset(pla)).toEqual([])
+    expect(temperaturesOutsidePreset({ ...pla, startTemperature: 245, endTemperature: 225 })).toEqual([245, 240])
+    expect(temperaturesOutsidePreset({ ...pla, material: Material.CUSTOM, startTemperature: 300, endTemperature: 280 })).toEqual([])
   })
 
   it('starts tier 0 at Z 0 and every other tier at its boundary (ADR-0009)', () => {

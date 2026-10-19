@@ -487,6 +487,20 @@ input[type='number'] {
   border: 1px solid color-mix(in oklab, var(--accent) calc(var(--heat) * 60%), var(--border));
 }
 
+.tier-chip.outside {
+  border-style: dashed;
+  border-color: var(--warning);
+}
+
+.preview-warning {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.85rem;
+}
+
 .preview-file {
   font-size: 0.8rem;
   color: var(--muted);

@@ -112,6 +112,13 @@ export const tierStartZ = (config: TowerConfig, tier: number): number => (tier =
 /** `b + n·h`: the top of the tower. */
 export const towerHeight = (config: TowerConfig): number => tierBoundaryZ(config, tierCount(config))
 
+/** Tier temperatures outside the material preset's range; Custom has no range to leave. */
+export const temperaturesOutsidePreset = (config: TowerConfig): readonly number[] => {
+  if (config.material === Material.CUSTOM) return []
+  const preset = findPreset(config.material)
+  return tierTemperatures(config).filter((t) => t < preset.minTemperature || t > preset.maxTemperature)
+}
+
 export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   const problems: string[] = []
   const isFinite = (n: number) => Number.isFinite(n)

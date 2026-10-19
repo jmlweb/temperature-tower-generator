@@ -4,6 +4,7 @@ import {
   encodeTowerConfigName,
   findPreset,
   tierCount,
+  temperaturesOutsidePreset,
   tierTemperatures,
   towerHeight,
   validateTowerConfig,
@@ -59,6 +60,7 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
       const hottest = Math.max(...temps)
       const coldest = Math.min(...temps)
       const heat = (t: number) => (hottest === coldest ? 0.5 : (t - coldest) / (hottest - coldest))
+      const outside = new Set(temperaturesOutsidePreset(config))
       replaceChildren(
         preview,
         el(
@@ -66,16 +68,18 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
           { class: 'preview-stats' },
           el('span', {}, el('strong', {}, String(tierCount(config))), ' tiers'),
           el('span', {}, el('strong', {}, `${towerHeight(config)} mm`), ' tall'),
-          el('span', {}, 'Preset range ', el('strong', {}, `${preset.minTemperature}–${preset.maxTemperature} °C`)),
         ),
         el(
           'div',
           { class: 'tier-chips', 'aria-label': 'Tier temperatures from bottom to top' },
           el('span', { class: 'tier-end' }, 'Bottom'),
-          ...temps.map((t) => el('span', { class: 'tier-chip', style: `--heat: ${heat(t).toFixed(2)}` }, `${t}°`)),
+          ...temps.map((t) => el('span', { class: outside.has(t) ? 'tier-chip outside' : 'tier-chip', style: `--heat: ${heat(t).toFixed(2)}`, title: outside.has(t) ? `Outside the ${preset.label} range` : undefined }, `${t}°`)),
           el('span', { class: 'tier-end' }, 'Top'),
         ),
         // Break the long name only after underscores, never inside a value like `step5`.
+        outside.size === 0
+          ? null
+          : el('p', { class: 'preview-warning', role: 'status' }, `${[...outside].join(', ')} °C ${outside.size === 1 ? 'is' : 'are'} outside the ${preset.label} range of ${preset.minTemperature}–${preset.maxTemperature} °C. The tower still generates; check your filament's datasheet.`),
         el('div', { class: 'preview-file' }, 'STL file name: ', el('code', {}, ...`${encodeTowerConfigName(config)}.stl`.split(/(?<=_)/).flatMap((part) => [part, el('wbr', {})]))),
       )
       preview.hidden = false
