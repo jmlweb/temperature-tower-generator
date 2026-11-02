@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 5 |
+| Pending | 7 |
 | Active | 0 |
 | Blocked | 0 |
 | Complete | 5 |
@@ -22,6 +22,8 @@ _No active tasks._
 | TSK-008 | User transforms binary G-code (.bgcode) from Core One and MK4-class printers | P1 | gcode, prusaslicer, onboarding | 2026-10-18 |
 | TSK-009 | Fix: Tier 0 M109 R turns the hotend off on Klipper firmware | P2 |  | 2026-10-30 |
 | TSK-010 | Fix: No warning when Custom tiers fall below the cold-extrusion limit | P4 |  | 2026-10-30 |
+| TSK-011 | Fix: Tower config accepts a step that skips the top tier or leaves a single tier | P4 |  | 2026-11-02 |
+| TSK-012 | Fix: No CI workflow runs typecheck and tests on pull requests | P4 |  | 2026-11-02 |
 
 ## Recently Completed
 
