@@ -4,10 +4,10 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 8 |
+| Pending | 7 |
 | Active | 0 |
 | Blocked | 0 |
-| Complete | 8 |
+| Complete | 9 |
 
 ## Active Tasks
 
@@ -24,7 +24,6 @@ _No active tasks._
 | TSK-010 | Fix: No warning when Custom tiers fall below the cold-extrusion limit | P4 |  | 2026-10-30 |
 | TSK-011 | Fix: Tower config accepts a step that skips the top tier or leaves a single tier | P4 |  | 2026-11-02 |
 | TSK-013 | Fix: Plain G-code with non-UTF-8 bytes loses them in the output | P4 |  | 2026-11-05 |
-| TSK-015 | Fix: Single-object Klipper or OctoPrint-labelled G-code fails with multiple-objects | P2 |  | 2026-11-11 |
 
 ## Recently Completed
 
@@ -32,6 +31,7 @@ _No active tasks._
 |----|-------|-----------|
 | TSK-012 | Fix: No CI workflow runs typecheck and tests on pull requests | 2026-11-11 |
 | TSK-014 | Fix: Binary G-code report status double-counts inserted tier commands | 2026-11-11 |
+| TSK-015 | Fix: Single-object Klipper or OctoPrint-labelled G-code fails with multiple-objects | 2026-11-11 |
 | TSK-016 | Fix: Config recovery from Klipper object labels fails for non-integer heights | 2026-11-11 |
 | TSK-002 | User transforms PrusaSlicer G-code with a manually entered config | 2026-10-18 |
 | TSK-003 | User downloads a labelled tower STL that matches the config | 2026-10-18 |

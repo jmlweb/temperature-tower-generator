@@ -1,0 +1,12 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "notes": "OctoPrint-style labels: `; printing object <name> id:0 copy 0` comments plus objects_info with the suffix kept, which must count as one object (RPT-008)."
+}

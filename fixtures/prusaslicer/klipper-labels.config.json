@@ -1,0 +1,12 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "notes": "Klipper flavor with firmware labels: PrusaSlicer writes EXCLUDE_OBJECT_DEFINE NAME='<sanitized name>' plus objects_info, which must count as one object (RPT-008)."
+}
