@@ -28,6 +28,12 @@ describe('filename codec', () => {
     expect(encodeTowerConfigName(config)).toBe('temptower_v1_PLA_230to190_step5_h10_b2_m104')
   })
 
+  it('accepts _ as the decimal separator, as in PrusaSlicer Klipper labels', () => {
+    const decoded = decodeTowerConfigName('temptower_v1_PLA_230to190_step5_h10_5_b1_4_m104_stl')
+    expect(decoded?.blockHeight).toBe(10.5)
+    expect(decoded?.baseHeight).toBe(1.4)
+  })
+
   it('decodes from a PrusaSlicer output name with suffixes', () => {
     const decoded = decodeTowerConfigName('temptower_v1_PETG_255to225_step5_h10_b2.5_m109_0.2mm_PETG_MK3S_1h12m.gcode')
     expect(decoded).toEqual({

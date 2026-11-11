@@ -21,7 +21,9 @@ export const encodeTowerConfigName = (config: TowerConfig): string =>
     config.waitForTemperature ? 'm109' : 'm104',
   ].join('_')
 
-const NUMBER = String.raw`\d+(?:\.\d+)?`
+// PrusaSlicer writes Klipper object labels with `.` replaced by `_`, so `b1.4` arrives as `b1_4` (RPT-009). Decode only.
+const NUMBER = String.raw`\d+(?:[._]\d+)?`
+const toNumber = (value: string | undefined): number => Number(value?.replace('_', '.'))
 const PATTERN = new RegExp(
   `${PREFIX}_(PLAPLUS|PLASILK|PLA|PETG|ABS|ASA|TPU|HIPS|PA|PC|CUSTOM)_(${NUMBER})to(${NUMBER})_step(${NUMBER})_h(${NUMBER})_b(${NUMBER})_(m104|m109)`,
 )
@@ -33,11 +35,11 @@ export const decodeTowerConfigName = (name: string): TowerConfig | null => {
   const [, material, start, end, step, blockHeight, baseHeight, mode] = match
   return {
     material: material as Material,
-    startTemperature: Number(start),
-    endTemperature: Number(end),
-    step: Number(step),
-    blockHeight: Number(blockHeight),
-    baseHeight: Number(baseHeight),
+    startTemperature: toNumber(start),
+    endTemperature: toNumber(end),
+    step: toNumber(step),
+    blockHeight: toNumber(blockHeight),
+    baseHeight: toNumber(baseHeight),
     waitForTemperature: mode === 'm109',
   }
 }
