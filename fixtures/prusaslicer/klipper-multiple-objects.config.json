@@ -1,0 +1,17 @@
+{
+  "config": {
+    "material": "PLA",
+    "startTemperature": 230,
+    "endTemperature": 220,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "errors": [
+      "multiple-objects"
+    ]
+  },
+  "notes": "Two real instances with Klipper labels still raise multiple-objects after name normalization (RPT-008)."
+}

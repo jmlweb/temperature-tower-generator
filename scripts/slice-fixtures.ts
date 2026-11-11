@@ -66,6 +66,10 @@ interface Variant {
   readonly completeObjects?: boolean
   /** Filament `temperature` (other layers) when it should differ from `first_layer_temperature`. */
   readonly temperature?: number
+  /** `gcode_flavor`, e.g. `klipper`; the printer profile's flavor when unset. */
+  readonly flavor?: string
+  /** `gcode_label_objects`: `firmware` (M486, or EXCLUDE_OBJECT_DEFINE under Klipper) or `octoprint` comments. */
+  readonly labels?: 'firmware' | 'octoprint'
   /** Keep this thumbnail spec (e.g. `16x16/QOI`) and convert the slice to `.bgcode`. */
   readonly binary?: string
   readonly expect?: { errors?: string[]; warnings?: string[] }
@@ -100,6 +104,34 @@ const variants: readonly Variant[] = [
     relativeE: true,
     temperature: 205,
     notes: 'Filament temperature 205 °C for other layers and 215 °C for the first, so PrusaSlicer emits an M104 at layer 2; it comes after the tier 0 command and is neutralized (ADR-0009).',
+  },
+  {
+    name: 'klipper-labels',
+    layer: '0.20',
+    zhop: 0.4,
+    relativeE: true,
+    flavor: 'klipper',
+    labels: 'firmware',
+    notes: 'Klipper flavor with firmware labels: PrusaSlicer writes EXCLUDE_OBJECT_DEFINE NAME=\'<sanitized name>\' plus objects_info, which must count as one object (RPT-008).',
+  },
+  {
+    name: 'octoprint-labels',
+    layer: '0.20',
+    zhop: 0.4,
+    relativeE: true,
+    labels: 'octoprint',
+    notes: 'OctoPrint-style labels: `; printing object <name> id:0 copy 0` comments plus objects_info with the suffix kept, which must count as one object (RPT-008).',
+  },
+  {
+    name: 'klipper-multiple-objects',
+    layer: '0.20',
+    zhop: 0.4,
+    relativeE: true,
+    flavor: 'klipper',
+    labels: 'firmware',
+    duplicate: 2,
+    expect: { errors: ['multiple-objects'] },
+    notes: 'Two real instances with Klipper labels still raise multiple-objects after name normalization (RPT-008).',
   },
   { name: 'multiple-objects', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, expect: { errors: ['multiple-objects'] } },
   { name: 'sequential-printing', layer: '0.20', zhop: 0.4, relativeE: true, duplicate: 2, completeObjects: true, expect: { errors: ['multiple-objects'] } },
@@ -155,6 +187,10 @@ const sliceVariant = (variant: Variant, stlPath: string): void => {
   }
   patch(config, 'complete_objects', variant.completeObjects ?? false)
   if (variant.temperature !== undefined) patch(config, 'temperature', [variant.temperature])
+  if (variant.flavor !== undefined) patch(config, 'gcode_flavor', variant.flavor)
+  // PrusaSlicer refuses to emit machine limits to G-code for Klipper.
+  if (variant.flavor === 'klipper') patch(config, 'machine_limits_usage', 'time_estimate_only')
+  if (variant.labels !== undefined) patch(config, 'gcode_label_objects', variant.labels)
   patch(config, 'thumbnails', variant.binary ?? '')
   const configPath = join(WORK_DIR, `${variant.name}.json`)
   writeFileSync(configPath, JSON.stringify(config))
