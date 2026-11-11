@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 9 |
+| Pending | 11 |
 | Active | 0 |
 | Blocked | 0 |
 | Complete | 5 |
@@ -26,6 +26,8 @@ _No active tasks._
 | TSK-012 | Fix: No CI workflow runs typecheck and tests on pull requests | P4 |  | 2026-11-02 |
 | TSK-013 | Fix: Plain G-code with non-UTF-8 bytes loses them in the output | P4 |  | 2026-11-05 |
 | TSK-014 | Fix: Binary G-code report status double-counts inserted tier commands | P4 |  | 2026-11-08 |
+| TSK-015 | Fix: Single-object Klipper or OctoPrint-labelled G-code fails with multiple-objects | P2 |  | 2026-11-11 |
+| TSK-016 | Fix: Config recovery from Klipper object labels fails for non-integer heights | P4 |  | 2026-11-11 |
 
 ## Recently Completed
 
