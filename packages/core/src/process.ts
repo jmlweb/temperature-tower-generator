@@ -8,7 +8,7 @@ import { buildReport, type Report } from './report.ts'
 import { readSlicerInfo } from './slicers/registry.ts'
 import type { SlicerInfo } from './slicers/types.ts'
 import { validateTowerConfig, type TowerConfig } from './tower-config.ts'
-import { transformGcode } from './transform.ts'
+import { temperatureDialect, transformGcode } from './transform.ts'
 import { hasErrors, validateGcode } from './validation.ts'
 
 export interface Inspection {
@@ -52,7 +52,13 @@ export const processGcode = ({ file, config }: ProcessInput): ProcessResult => {
   const issues = validateGcode({ motion, slicer, config, binaryError: file.binaryError })
   const blocked = hasErrors(issues)
   // MeatPack drops inline comments, so binary output carries the tier marker on its own line (ADR-0007).
-  const transformed = blocked ? null : transformGcode({ lines, motion, config, markerStyle: file.binary ? 'line' : 'inline' })
+  const transformed = blocked ? null : transformGcode({
+        lines,
+        motion,
+        config,
+        markerStyle: file.binary ? 'line' : 'inline',
+        dialect: temperatureDialect(slicer.config.gcode_flavor),
+      })
   const report = buildReport({
     fileName: file.fileName,
     slicer,

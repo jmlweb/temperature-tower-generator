@@ -31,7 +31,7 @@ export { slicerReaders, readSlicerInfo, UNKNOWN_SLICER } from './slicers/registr
 export { isBinaryGcode, loadGcodeFile, loadGcodeText, type LoadedGcode, type LoadGcodeInput } from './gcode-file.ts'
 export * from './bgcode/index.ts'
 export { ValidationCode, Severity, validateGcode, hasErrors, type ValidationIssue } from './validation.ts'
-export { countTierCommands, planTiers, tierCommand, tierMarkerLine, transformGcode, NEUTRALIZED_PREFIX, type MarkerStyle, type TierPlacement, type Change, type TransformResult } from './transform.ts'
+export { countTierCommands, planTiers, temperatureDialect, TemperatureDialect, tierCommand, tierMarkerLine, transformGcode, NEUTRALIZED_PREFIX, type MarkerStyle, type TierPlacement, type Change, type TransformResult } from './transform.ts'
 export { ProfileTemperatureSource, profileTemperature, type ProfileTemperature } from './profile-temperature.ts'
 export { buildReport, buildChart, type Report, type ReportInput, type ChartPoint, type ReportLine, type NeutralizedLine } from './report.ts'
 export { ConfigSource, recoverTowerConfig, type RecoveredConfig } from './recover-config.ts'

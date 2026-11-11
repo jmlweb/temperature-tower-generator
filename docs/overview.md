@@ -30,7 +30,7 @@ These are checked first against TSK-001's result: a refuted assumption meets the
 ## Scope
 - In (Phase 1): parametric tower STL generated in the browser, with labels, PLA, PLA+, PLA silk, PETG, ABS, ASA, TPU, HIPS, PA and PC presets, and the config encoded in the filename.
 - In (Phase 1): PrusaSlicer ASCII G-code analysis, transformation, validation and preview. Arc moves (`G2`/`G3`) are an error.
-- In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109 R` when the config's wait-for-temperature flag is set).
+- In (Phase 1): Marlin / Prusa / Klipper dialect (`M104`, or `M109 R` when the config's wait-for-temperature flag is set; `M109 S` when the G-code flavor is Klipper, ADR-0012).
 - In (Phase 1): static hosting with an anonymous event counter.
 - Phase 2 (always): optional back text, the RepRapFirmware dialect (`G10 P0 S…`). Binary G-code (`.bgcode`, ADR-0007) and arc moves (ADR-0008) moved into Phase 1 because the Core One's stock profile produces both by default.
 - Phase 2 (conditional): OrcaSlicer and Cura fixtures and config readers. These go ahead only if TSK-001 or post-launch reports show those users want the verified change report.
@@ -45,7 +45,7 @@ Roadmap gates: Phase 1 ends with one physical tower printed from PrusaSlicer out
 - Platform: desktop browsers only.
 - Privacy: no telemetry beyond an anonymous event counter; files never leave the device.
 - Stack: TypeScript strict, pnpm workspace, Vite.
-- Compatibility: Phase 1 supports PrusaSlicer ASCII G-code on Marlin/Prusa/Klipper firmware.
+- Compatibility: Phase 1 supports PrusaSlicer G-code on Marlin/Prusa/Klipper firmware. Klipper needs the printer profile's G-code flavor set to Klipper (ADR-0012).
 
 ## Architecture
 - ADR-0001 Client-side only on static hosting, with a third-party event counter as the only runtime dependency: €0, no operations, files stay on the device.

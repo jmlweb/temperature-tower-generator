@@ -1,6 +1,6 @@
 # 0010. Tiers start above the boundary and wait with `M109 R`
 
-**Status:** accepted; amends ADR-0003 (layer mapping), ADR-0009 (wait command, warning) and ADR-0004 (warning list)
+**Status:** accepted; amends ADR-0003 (layer mapping), ADR-0009 (wait command, warning) and ADR-0004 (warning list). The Klipper line is superseded by ADR-0012
 
 ## Context
 An expert review of the generator found two defects.

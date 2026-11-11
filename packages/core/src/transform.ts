@@ -68,12 +68,30 @@ export type MarkerStyle = 'inline' | 'line'
 
 export const tierMarkerLine = (tier: number): string => `${MARKER} tier ${tier}`
 
+/**
+ * How the firmware reads `M109`: Marlin and Prusa need `R` to wait while cooling
+ * (ADR-0010); Klipper reads only `S`, so `R` alone sets the target to 0 (ADR-0012).
+ */
+export const TemperatureDialect = { MARLIN: 'marlin', KLIPPER: 'klipper' } as const
+export type TemperatureDialect = (typeof TemperatureDialect)[keyof typeof TemperatureDialect]
+
+/** PrusaSlicer's `gcode_flavor`; anything but `klipper` keeps the Marlin form (ADR-0012). */
+export const temperatureDialect = (gcodeFlavor: string | undefined): TemperatureDialect =>
+  gcodeFlavor?.trim().toLowerCase() === 'klipper' ? TemperatureDialect.KLIPPER : TemperatureDialect.MARLIN
+
 /** Tier 0 always waits, or layer 0 would print while the nozzle heats from the profile's temperature (ADR-0009). */
 const isWaitingTier = (config: TowerConfig, tier: number): boolean => tier === 0 || config.waitForTemperature
 
-export const tierCommand = (config: TowerConfig, tier: number, markerStyle: MarkerStyle = 'inline'): string => {
-  // R waits for cooling as well as heating; M109 S returns at once when the nozzle is hotter (ADR-0010).
-  const command = isWaitingTier(config, tier) ? `M109 R${tierTemperature(config, tier)}` : `M104 S${tierTemperature(config, tier)}`
+export const tierCommand = (
+  config: TowerConfig,
+  tier: number,
+  markerStyle: MarkerStyle = 'inline',
+  dialect: TemperatureDialect = TemperatureDialect.MARLIN,
+): string => {
+  const temperature = tierTemperature(config, tier)
+  // Marlin: R waits for cooling as well as heating, S returns at once when hotter (ADR-0010). Klipper: only S is read (ADR-0012).
+  const waitLetter = dialect === TemperatureDialect.KLIPPER ? 'S' : 'R'
+  const command = isWaitingTier(config, tier) ? `M109 ${waitLetter}${temperature}` : `M104 S${temperature}`
   return markerStyle === 'inline' ? `${command} ${tierMarkerLine(tier)}` : command
 }
 
@@ -99,13 +117,14 @@ export interface TransformInput {
   readonly motion: MotionAnalysis
   readonly config: TowerConfig
   readonly markerStyle?: MarkerStyle
+  readonly dialect?: TemperatureDialect
 }
 
 /**
  * Pure line-preserving transform (ADR-0002): every output line is an input line
  * byte-for-byte, an inserted tier command, a header line, or a neutralized line.
  */
-export const transformGcode = ({ lines, motion, config, markerStyle = 'inline' }: TransformInput): TransformResult => {
+export const transformGcode = ({ lines, motion, config, markerStyle = 'inline', dialect = TemperatureDialect.MARLIN }: TransformInput): TransformResult => {
   const tiers = planTiers(config, motion.layers)
   const insertBefore = new Map<number, TierPlacement[]>()
   for (const placement of tiers) {
@@ -136,7 +155,9 @@ export const transformGcode = ({ lines, motion, config, markerStyle = 'inline' }
     const inserts = insertBefore.get(line.index)
     if (inserts) {
       for (const placement of inserts) {
-        const inserted = markerStyle === 'inline' ? [tierCommand(config, placement.tier)] : [tierMarkerLine(placement.tier), tierCommand(config, placement.tier, 'line')]
+        const inserted = markerStyle === 'inline'
+            ? [tierCommand(config, placement.tier, 'inline', dialect)]
+            : [tierMarkerLine(placement.tier), tierCommand(config, placement.tier, 'line', dialect)]
         for (const text of inserted) {
           changes.push({ kind: 'insert', lineIndex: line.index, tier: placement.tier, text })
           output.push(text, ending)

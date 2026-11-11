@@ -4,7 +4,7 @@ import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEnco
 import { parseGcode } from './gcode-lines.ts'
 import { analyzeMotion } from './motion.ts'
 import { Material, type TowerConfig } from './tower-config.ts'
-import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, tierMarkerLine, transformGcode } from './transform.ts'
+import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, TemperatureDialect, temperatureDialect, tierMarkerLine, transformGcode } from './transform.ts'
 import { MARKER } from './version.ts'
 
 const config: TowerConfig = {
@@ -92,6 +92,27 @@ describe('transform', () => {
     expect(head[3]).toContain('3 tier commands inserted, 0 temperature commands neutralized')
   })
 
+  it('waits with M109 S on Klipper, which reads only S (ADR-0012)', () => {
+    const lines = parseGcode(towerGcode(19))
+    const waiting = { ...config, waitForTemperature: true }
+    const inline = transformGcode({ lines, motion: analyzeMotion(lines), config: waiting, dialect: TemperatureDialect.KLIPPER })
+    expect(inline.changes.filter((c) => c.kind === 'insert').map((c) => c.text)).toEqual([
+      `M109 S230 ${MARKER} tier 0`,
+      `M109 S225 ${MARKER} tier 1`,
+      `M109 S220 ${MARKER} tier 2`,
+    ])
+    const line = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line', dialect: TemperatureDialect.KLIPPER })
+    expect(line.changes.filter((c) => c.kind === 'insert').map((c) => c.text)).toEqual([tierMarkerLine(0), 'M109 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
+    expect(inline.text).not.toMatch(/M109 R/)
+  })
+
+  it('picks the dialect from gcode_flavor (ADR-0012)', () => {
+    expect(temperatureDialect('klipper')).toBe(TemperatureDialect.KLIPPER)
+    expect(temperatureDialect(' Klipper ')).toBe(TemperatureDialect.KLIPPER)
+    expect(temperatureDialect('marlin2')).toBe(TemperatureDialect.MARLIN)
+    expect(temperatureDialect(undefined)).toBe(TemperatureDialect.MARLIN)
+  })
+
   it('puts the tier marker on its own line when asked, for binary output (ADR-0007)', () => {
     const lines = parseGcode(towerGcode(19))
     const result = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line' })
@@ -140,15 +161,17 @@ const configArbitrary: fc.Arbitrary<TowerConfig> = fc.record({
   waitForTemperature: fc.boolean(),
 }).filter((c) => c.startTemperature !== c.endTemperature)
 
+const dialectArbitrary = fc.constantFrom(...Object.values(TemperatureDialect))
+
 const TIER_SUFFIX = new RegExp(` ${MARKER.replaceAll('[', '\\[').replaceAll(']', '\\]')} tier (\\d+)$`)
 
 describe('line-preserving property (ADR-0002)', () => {
-  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), endingArbitrary, configArbitrary])(
+  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), endingArbitrary, configArbitrary, dialectArbitrary])(
     'every output line is an untouched input line, an inserted tier command, a header, or a neutralized input line',
-    (inputLines, ending, towerConfig) => {
+    (inputLines, ending, towerConfig, dialect) => {
       const input = inputLines.join(ending)
       const parsed = parseGcode(input)
-      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig })
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, dialect })
 
       // A file with fewer than two lines has no detectable ending, so split on both.
       const outputLines = result.text.split(/\r\n|\n/)
@@ -184,13 +207,13 @@ const binaryFile = (text: string): Uint8Array =>
 const TIER_MARKER_LINE = new RegExp(`^${MARKER.replaceAll('[', '\\[').replaceAll(']', '\\]')} tier (\\d+)$`)
 
 describe('line-preserving property over binary G-code (ADR-0007)', () => {
-  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), configArbitrary])(
+  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), configArbitrary, dialectArbitrary])(
     'every decoded output line is a decoded input line, a marker line plus its command, a header, or a neutralized line',
-    (inputLines, towerConfig) => {
+    (inputLines, towerConfig, dialect) => {
       // The input goes through MeatPack once, as a slicer export would, so the decoded text is the canonical form.
       const input = decodeBgcode(binaryFile(inputLines.length === 0 ? '' : `${inputLines.join('\n')}\n`))
       const parsed = parseGcode(input.text)
-      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, markerStyle: 'line' })
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, markerStyle: 'line', dialect })
       const output = decodeBgcode(encodeBgcode(input, result.text))
 
       const outputLines = output.text.split('\n')
@@ -198,7 +221,7 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       let expectCommand = false
       for (const line of outputLines) {
         if (expectCommand) {
-          expect(line).toMatch(/^(M109 R|M10[49] S)\d+$/)
+          expect(line).toMatch(/^M109 [RS]\d+$|^M104 S\d+$/)
           expectCommand = false
           continue
         }

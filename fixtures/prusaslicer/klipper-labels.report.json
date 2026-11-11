@@ -60,7 +60,7 @@
   "inserted": [
     {
       "lineNumber": 32,
-      "text": "M109 R230 ; [temptower] tier 0"
+      "text": "M109 S230 ; [temptower] tier 0"
     },
     {
       "lineNumber": 13002,
