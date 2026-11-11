@@ -4,7 +4,7 @@ import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEnco
 import { parseGcode } from './gcode-lines.ts'
 import { analyzeMotion } from './motion.ts'
 import { Material, type TowerConfig } from './tower-config.ts'
-import { NEUTRALIZED_PREFIX, planTiers, tierMarkerLine, transformGcode } from './transform.ts'
+import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, tierMarkerLine, transformGcode } from './transform.ts'
 import { MARKER } from './version.ts'
 
 const config: TowerConfig = {
@@ -98,6 +98,8 @@ describe('transform', () => {
     const inserted = result.changes.filter((c) => c.kind === 'insert').map((c) => c.text)
     expect(inserted).toEqual([tierMarkerLine(0), 'M109 R230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
     expect(result.text).toContain(`\n${MARKER} tier 1\nM104 S225\nG1 X20 Y10 E1 ; layer at 7.2\n`)
+    expect(countTierCommands(result.tiers)).toBe(3)
+    expect(result.text).toContain('3 tier commands inserted')
   })
 
   it('leaves tiers unplaced when the model is too short', () => {

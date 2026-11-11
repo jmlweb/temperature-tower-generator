@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { BgcodeBlockType, decodeBgcode, loadGcodeFile, processGcode, utf8Decode, type TowerConfig } from '@temptower/core'
+import { BgcodeBlockType, countTierCommands, decodeBgcode, loadGcodeFile, processGcode, utf8Decode, type TowerConfig } from '@temptower/core'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -54,6 +54,9 @@ for (const slicerDir of slicerDirs) {
         expect(result.report.canDownload).toBe(true)
         expect(result.output.startsWith('; [temptower] ')).toBe(true)
         await expect(result.output).toMatchFileSnapshot(goldenPath)
+        // The UI status line and the output header must agree on the tier command count, for both marker styles.
+        expect(result.output).toContain(`; [temptower] changes: ${countTierCommands(result.report.tiers)} tier commands inserted`)
+        if (variant === 'coreone-binary') expect(countTierCommands(result.report.tiers)).toBe(3)
 
         if (file.binary === null) {
           expect(result.outputFileName.endsWith('_temptower.gcode')).toBe(true)

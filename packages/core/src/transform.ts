@@ -77,6 +77,9 @@ export const tierCommand = (config: TowerConfig, tier: number, markerStyle: Mark
   return markerStyle === 'inline' ? `${command} ${tierMarkerLine(tier)}` : command
 }
 
+/** Placed tiers, one command each; binary output adds a marker line per tier, so insert changes are not a count (ADR-0007). */
+export const countTierCommands = (tiers: readonly TierPlacement[]): number => tiers.filter((tier) => tier.lineIndex !== null).length
+
 export const NEUTRALIZED_PREFIX = `${MARKER} neutralized: `
 
 const buildHeader = (config: TowerConfig, insertedCount: number, neutralizedCount: number): readonly string[] => {
@@ -124,7 +127,7 @@ export const transformGcode = ({ lines, motion, config, markerStyle = 'inline' }
   const changes: Change[] = []
   const output: string[] = []
 
-  for (const headerLine of buildHeader(config, insertBefore.size === 0 ? 0 : tiers.filter((t) => t.lineIndex !== null).length, neutralize.size)) {
+  for (const headerLine of buildHeader(config, countTierCommands(tiers), neutralize.size)) {
     changes.push({ kind: 'header', text: headerLine })
     output.push(headerLine, ending)
   }

@@ -1,4 +1,4 @@
-import { ConfigSource, MATERIAL_PRESETS, TOOL_VERSION, encodeTowerConfigName, findPreset, type ProcessResult, type TowerConfig } from '@temptower/core'
+import { ConfigSource, MATERIAL_PRESETS, countTierCommands, TOOL_VERSION, encodeTowerConfigName, findPreset, type ProcessResult, type TowerConfig } from '@temptower/core'
 import { createConfigForm } from './config-form.ts'
 import { createCounter } from './counter.ts'
 import { el, replaceChildren } from './dom.ts'
@@ -172,7 +172,7 @@ const runTransform = async ({ shouldScroll }: { shouldScroll: boolean }): Promis
     const result = await gcode.process(configForm.getConfig())
     if (current !== runId) return
     if (result.report.canDownload) {
-      setStatus(uploadStatus, 'ok', `Report ready: ${result.report.inserted.length} tier commands inserted, ${result.report.neutralized.length} neutralized, ${result.report.warnings.length} warnings.`)
+      setStatus(uploadStatus, 'ok', `Report ready: ${countTierCommands(result.report.tiers)} tier commands inserted, ${result.report.neutralized.length} neutralized, ${result.report.warnings.length} warnings.`)
       stepTwo.dataset['state'] = 'done'
     } else {
       setStatus(uploadStatus, 'error', `Report ready: ${result.report.errors.length} errors block the download.`)
