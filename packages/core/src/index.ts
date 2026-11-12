@@ -30,7 +30,7 @@ export { analyzeMotion, typicalLayerHeight, type Layer, type MotionAnalysis, typ
 export type { SlicerInfo, SlicerReader, SlicerMetadata, LayerMarker } from './slicers/types.ts'
 export { prusaSlicerReader } from './slicers/prusaslicer.ts'
 export { slicerReaders, readSlicerInfo, UNKNOWN_SLICER } from './slicers/registry.ts'
-export { isBinaryGcode, loadGcodeFile, loadGcodeText, type LoadedGcode, type LoadGcodeInput } from './gcode-file.ts'
+export { encodePlainText, isBinaryGcode, latin1Decode, latin1Encode, loadGcodeFile, loadGcodeText, TextEncoding, type LoadedGcode, type LoadGcodeInput } from './gcode-file.ts'
 export * from './bgcode/index.ts'
 export { ValidationCode, Severity, validateGcode, hasErrors, type ValidationIssue } from './validation.ts'
 export { countTierCommands, planTiers, temperatureDialect, TemperatureDialect, tierCommand, tierMarkerLine, transformGcode, NEUTRALIZED_PREFIX, type MarkerStyle, type TierPlacement, type Change, type TransformResult } from './transform.ts'
