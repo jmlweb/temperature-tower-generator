@@ -1,4 +1,5 @@
 import {
+  COLD_EXTRUSION_MIN_TEMPERATURE,
   MATERIAL_PRESETS,
   Material,
   encodeTowerConfigName,
@@ -6,6 +7,7 @@ import {
   tierCount,
   PRUSA_MAX_NOZZLE_TEMPERATURE,
   temperaturesAbovePrinterLimit,
+  temperaturesBelowColdExtrusionLimit,
   temperaturesOutsidePreset,
   tierTemperatures,
   towerHeight,
@@ -64,6 +66,7 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
       const heat = (t: number) => (hottest === coldest ? 0.5 : (t - coldest) / (hottest - coldest))
       const outside = new Set(temperaturesOutsidePreset(config))
       const tooHot = temperaturesAbovePrinterLimit(config)
+      const tooCold = temperaturesBelowColdExtrusionLimit(config)
       replaceChildren(
         preview,
         el(
@@ -86,6 +89,9 @@ export const createConfigForm = (initial: TowerConfig): ConfigForm => {
         tooHot.length === 0
           ? null
           : el('p', { class: 'preview-warning', role: 'status' }, `${tooHot.join(', ')} °C ${tooHot.length === 1 ? 'is' : 'are'} above ${PRUSA_MAX_NOZZLE_TEMPERATURE} °C, the nozzle limit of current Prusa printers. Check your printer's maximum.`),
+        tooCold.length === 0
+          ? null
+          : el('p', { class: 'preview-warning', role: 'status' }, `${tooCold.join(', ')} °C ${tooCold.length === 1 ? 'is' : 'are'} below ${COLD_EXTRUSION_MIN_TEMPERATURE} °C, the cold-extrusion limit of common firmware. The printer may refuse to extrude.`),
         el('div', { class: 'preview-file' }, 'STL file name: ', el('code', {}, ...`${encodeTowerConfigName(config)}.stl`.split(/(?<=_)/).flatMap((part) => [part, el('wbr', {})]))),
       )
       preview.hidden = false

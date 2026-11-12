@@ -80,6 +80,12 @@ describe('validation (ADR-0004)', () => {
     expect(codes(towerGcode(19), { ...custom, startTemperature: 290, endTemperature: 280 })).toEqual([])
   })
 
+  it('warns when a tier is below the cold-extrusion limit (ADR-0014)', () => {
+    const custom = { ...config, material: Material.CUSTOM }
+    expect(codes(towerGcode(19), { ...custom, startTemperature: 180, endTemperature: 170 })).toEqual([`warning:${ValidationCode.TEMPERATURE_BELOW_COLD_EXTRUSION_LIMIT}`])
+    expect(codes(towerGcode(19), { ...custom, startTemperature: 185, endTemperature: 175 })).toEqual([])
+  })
+
   it('warns on multi-tool G-code', () => {
     expect(codes(`T0\n${towerGcode(19)}\nT1`)).toEqual([`warning:${ValidationCode.MULTI_TOOL}`])
   })

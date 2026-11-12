@@ -253,6 +253,12 @@ export const PRUSA_MAX_NOZZLE_TEMPERATURE = 290
 export const temperaturesAbovePrinterLimit = (config: TowerConfig): readonly number[] =>
   tierTemperatures(config).filter((t) => t > PRUSA_MAX_NOZZLE_TEMPERATURE)
 
+/** Highest stock cold-extrusion guard: Prusa MK3S firmware 175 °C; Klipper, Marlin and MK4 use 170 °C (ADR-0014). */
+export const COLD_EXTRUSION_MIN_TEMPERATURE = 175
+
+export const temperaturesBelowColdExtrusionLimit = (config: TowerConfig): readonly number[] =>
+  tierTemperatures(config).filter((t) => t < COLD_EXTRUSION_MIN_TEMPERATURE)
+
 /** The end temperature is the top tier, so the step must reach it exactly in at least one step (ADR-0013). */
 const stepProblems = (config: TowerConfig): readonly string[] => {
   const range = Math.abs(config.endTemperature - config.startTemperature)

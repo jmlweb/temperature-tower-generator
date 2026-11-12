@@ -1,9 +1,9 @@
 import type { MotionAnalysis } from './motion.ts'
 import { typicalLayerHeight } from './motion.ts'
 import type { SlicerInfo } from './slicers/types.ts'
-import { findPreset, PRUSA_MAX_NOZZLE_TEMPERATURE, temperaturesAbovePrinterLimit, temperaturesOutsidePreset, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
+import { COLD_EXTRUSION_MIN_TEMPERATURE, findPreset, PRUSA_MAX_NOZZLE_TEMPERATURE, temperaturesAbovePrinterLimit, temperaturesBelowColdExtrusionLimit, temperaturesOutsidePreset, towerHeight, Z_EPSILON, type TowerConfig } from './tower-config.ts'
 
-/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 (binary input), ADR-0008 (arcs allowed) and ADR-0010 (first-layer-above-tier-0 removed) and ADR-0011 (temperature above the printer limit). */
+/** Every check is in the `error` or `warning` list of ADR-0004, as amended by ADR-0007 (binary input), ADR-0008 (arcs allowed) and ADR-0010 (first-layer-above-tier-0 removed) and ADR-0011 (temperature above the printer limit) and ADR-0014 (temperature below the cold-extrusion limit). */
 export const ValidationCode = {
   NO_EXTRUSION: 'no-extrusion',
   VARIABLE_LAYER_HEIGHT: 'variable-layer-height',
@@ -13,6 +13,7 @@ export const ValidationCode = {
   HEIGHT_OFF_BY_ONE_LAYER: 'height-off-by-one-layer',
   TEMPERATURE_OUTSIDE_PRESET: 'temperature-outside-preset',
   TEMPERATURE_ABOVE_PRINTER_LIMIT: 'temperature-above-printer-limit',
+  TEMPERATURE_BELOW_COLD_EXTRUSION_LIMIT: 'temperature-below-cold-extrusion-limit',
   MARKER_MISMATCH: 'marker-mismatch',
   MULTI_TOOL: 'multi-tool',
 } as const
@@ -86,6 +87,11 @@ export const validateGcode = ({ motion, slicer, config, binaryError }: Validatio
   const aboveLimit = temperaturesAbovePrinterLimit(config)
   if (aboveLimit.length > 0) {
     issues.push(warning(ValidationCode.TEMPERATURE_ABOVE_PRINTER_LIMIT, `Tier temperatures ${aboveLimit.join(', ')} °C are above ${PRUSA_MAX_NOZZLE_TEMPERATURE} °C, the nozzle limit of current Prusa printers. The firmware may refuse them or stop with a max-temperature error.`))
+  }
+
+  const belowLimit = temperaturesBelowColdExtrusionLimit(config)
+  if (belowLimit.length > 0) {
+    issues.push(warning(ValidationCode.TEMPERATURE_BELOW_COLD_EXTRUSION_LIMIT, `Tier temperatures ${belowLimit.join(', ')} °C are below ${COLD_EXTRUSION_MIN_TEMPERATURE} °C, the cold-extrusion limit of common firmware. The firmware may refuse to extrude or stop the print.`))
   }
 
   if (slicer.layerMarkers.length > 0) {
