@@ -67,7 +67,7 @@ const sliceSteps = el(
   el('li', {}, 'Slice it with your usual printer, filament and print profiles.'),
   el('li', {}, 'Export the G-code, plain or binary, and drop it below.'),
 )
-const supportNote = el('p', { class: 'step-note' }, 'Works with Marlin, Prusa and Klipper firmware, with or without arc fitting.')
+const supportNote = el('p', { class: 'step-note' }, 'Works with Marlin, Prusa and Klipper firmware, with or without arc fitting. On Klipper, set the printer\'s G-code flavor to Klipper in PrusaSlicer.')
 const fileInput = el('input', { type: 'file', accept: '.gcode,.g,.gco,.bgcode', id: 'gcode-file' })
 const fileChip = el('span', { class: 'file-chip' })
 const browseButton = el('button', { type: 'button', class: 'secondary' }, 'Browse files')

@@ -1,10 +1,12 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEncode, splitGcodeChunks, utf8Encode, writeBlock, writeFileHeader, concatBytes, BgcodeBlockType, BgcodeCompression, ChecksumType, GcodeEncoding, MetadataEncoding } from './bgcode/index.ts'
+import { loadGcodeFile } from './gcode-file.ts'
 import { parseGcode } from './gcode-lines.ts'
+import { processGcode } from './process.ts'
 import { analyzeMotion } from './motion.ts'
 import { Material, type TowerConfig } from './tower-config.ts'
-import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, tierMarkerLine, transformGcode } from './transform.ts'
+import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, TemperatureDialect, temperatureDialect, tierMarkerLine, transformGcode } from './transform.ts'
 import { MARKER } from './version.ts'
 
 const config: TowerConfig = {
@@ -92,6 +94,27 @@ describe('transform', () => {
     expect(head[3]).toContain('3 tier commands inserted, 0 temperature commands neutralized')
   })
 
+  it('waits with M109 S on Klipper, which reads only S (ADR-0012)', () => {
+    const lines = parseGcode(towerGcode(19))
+    const waiting = { ...config, waitForTemperature: true }
+    const inline = transformGcode({ lines, motion: analyzeMotion(lines), config: waiting, dialect: TemperatureDialect.KLIPPER })
+    expect(inline.changes.filter((c) => c.kind === 'insert').map((c) => c.text)).toEqual([
+      `M109 S230 ${MARKER} tier 0`,
+      `M109 S225 ${MARKER} tier 1`,
+      `M109 S220 ${MARKER} tier 2`,
+    ])
+    const line = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line', dialect: TemperatureDialect.KLIPPER })
+    expect(line.changes.filter((c) => c.kind === 'insert').map((c) => c.text)).toEqual([tierMarkerLine(0), 'M109 S230', tierMarkerLine(1), 'M104 S225', tierMarkerLine(2), 'M104 S220'])
+    expect(inline.text).not.toMatch(/M109 R/)
+  })
+
+  it('picks the dialect from gcode_flavor (ADR-0012)', () => {
+    expect(temperatureDialect('klipper')).toBe(TemperatureDialect.KLIPPER)
+    expect(temperatureDialect(' Klipper ')).toBe(TemperatureDialect.KLIPPER)
+    expect(temperatureDialect('marlin2')).toBe(TemperatureDialect.MARLIN)
+    expect(temperatureDialect(undefined)).toBe(TemperatureDialect.MARLIN)
+  })
+
   it('puts the tier marker on its own line when asked, for binary output (ADR-0007)', () => {
     const lines = parseGcode(towerGcode(19))
     const result = transformGcode({ lines, motion: analyzeMotion(lines), config, markerStyle: 'line' })
@@ -140,22 +163,27 @@ const configArbitrary: fc.Arbitrary<TowerConfig> = fc.record({
   waitForTemperature: fc.boolean(),
 }).filter((c) => c.startTemperature !== c.endTemperature)
 
+const dialectArbitrary = fc.constantFrom(...Object.values(TemperatureDialect))
+
 const TIER_SUFFIX = new RegExp(` ${MARKER.replaceAll('[', '\\[').replaceAll(']', '\\]')} tier (\\d+)$`)
 
 describe('line-preserving property (ADR-0002)', () => {
-  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), endingArbitrary, configArbitrary])(
+  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), endingArbitrary, configArbitrary, dialectArbitrary])(
     'every output line is an untouched input line, an inserted tier command, a header, or a neutralized input line',
-    (inputLines, ending, towerConfig) => {
+    (inputLines, ending, towerConfig, dialect) => {
       const input = inputLines.join(ending)
       const parsed = parseGcode(input)
-      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig })
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, dialect })
 
       // A file with fewer than two lines has no detectable ending, so split on both.
       const outputLines = result.text.split(/\r\n|\n/)
       const recovered: string[] = []
       for (const line of outputLines) {
         if (line.startsWith(`${MARKER} `) && !line.startsWith(NEUTRALIZED_PREFIX)) continue
-        if (TIER_SUFFIX.test(line)) continue
+        if (TIER_SUFFIX.test(line)) {
+          expect(line).toMatch(dialect === TemperatureDialect.KLIPPER ? /^(M109|M104) S\d+ / : /^(M109 R|M104 S)\d+ /)
+          continue
+        }
         if (line.startsWith(NEUTRALIZED_PREFIX)) {
           const original = line.slice(NEUTRALIZED_PREFIX.length)
           expect(original).toMatch(/^\s*M10[49]\b/i)
@@ -171,11 +199,11 @@ describe('line-preserving property (ADR-0002)', () => {
 })
 
 /** A minimal binary file around `text`, in PrusaSlicer's default encoding. */
-const binaryFile = (text: string): Uint8Array =>
+const binaryFile = (text: string, printer: Record<string, string> = { printer_model: 'COREONE' }): Uint8Array =>
   concatBytes([
     writeFileHeader(ChecksumType.CRC32),
     writeBlock({ type: BgcodeBlockType.FILE_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ Producer: 'PrusaSlicer 2.9.0' }) }, ChecksumType.CRC32),
-    writeBlock({ type: BgcodeBlockType.PRINTER_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ printer_model: 'COREONE' }) }, ChecksumType.CRC32),
+    writeBlock({ type: BgcodeBlockType.PRINTER_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni(printer) }, ChecksumType.CRC32),
     ...splitGcodeChunks(utf8Encode(text)).map((chunk) =>
       writeBlock({ type: BgcodeBlockType.GCODE, compression: BgcodeCompression.HEATSHRINK_12_4, parameters: encodingParameters(GcodeEncoding.MEATPACK_COMMENTS), data: meatpackEncode(chunk, { removeComments: false }) }, ChecksumType.CRC32),
     ),
@@ -184,13 +212,13 @@ const binaryFile = (text: string): Uint8Array =>
 const TIER_MARKER_LINE = new RegExp(`^${MARKER.replaceAll('[', '\\[').replaceAll(']', '\\]')} tier (\\d+)$`)
 
 describe('line-preserving property over binary G-code (ADR-0007)', () => {
-  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), configArbitrary])(
+  test.prop([fc.array(lineArbitrary, { maxLength: 80 }), configArbitrary, dialectArbitrary])(
     'every decoded output line is a decoded input line, a marker line plus its command, a header, or a neutralized line',
-    (inputLines, towerConfig) => {
+    (inputLines, towerConfig, dialect) => {
       // The input goes through MeatPack once, as a slicer export would, so the decoded text is the canonical form.
       const input = decodeBgcode(binaryFile(inputLines.length === 0 ? '' : `${inputLines.join('\n')}\n`))
       const parsed = parseGcode(input.text)
-      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, markerStyle: 'line' })
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig, markerStyle: 'line', dialect })
       const output = decodeBgcode(encodeBgcode(input, result.text))
 
       const outputLines = output.text.split('\n')
@@ -198,7 +226,7 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       let expectCommand = false
       for (const line of outputLines) {
         if (expectCommand) {
-          expect(line).toMatch(/^(M109 R|M10[49] S)\d+$/)
+          expect(line).toMatch(dialect === TemperatureDialect.KLIPPER ? /^(M109|M104) S\d+$/ : /^(M109 R|M104 S)\d+$/)
           expectCommand = false
           continue
         }
@@ -219,4 +247,21 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       expect(output.text.startsWith(`${MARKER} `)).toBe(true)
     },
   )
+})
+
+describe('dialect from the slicer config (ADR-0012)', () => {
+  const tierZero = (bytes: Uint8Array, fileName: string): string | undefined =>
+    processGcode({ file: loadGcodeFile({ fileName, bytes }), config }).report.inserted.find((line) => /^M109 /.test(line.text))?.text
+
+  it('waits with M109 S when binary printer metadata says gcode_flavor = klipper', () => {
+    const text = `${towerGcode(19)}\n`
+    expect(tierZero(binaryFile(text, { printer_model: 'COREONE', gcode_flavor: 'klipper' }), 'tower.bgcode')).toBe('M109 S230')
+    expect(tierZero(binaryFile(text, { printer_model: 'COREONE', gcode_flavor: 'marlin2' }), 'tower.bgcode')).toBe('M109 R230')
+  })
+
+  it('waits with M109 S when the plain config block says gcode_flavor = klipper', () => {
+    const withFlavor = (flavor: string) => utf8Encode(`${towerGcode(19)}\n; gcode_flavor = ${flavor}\n`)
+    expect(tierZero(withFlavor('klipper'), 'tower.gcode')).toBe(`M109 S230 ${MARKER} tier 0`)
+    expect(tierZero(withFlavor('marlin'), 'tower.gcode')).toBe(`M109 R230 ${MARKER} tier 0`)
+  })
 })

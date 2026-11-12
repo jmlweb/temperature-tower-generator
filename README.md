@@ -32,7 +32,7 @@ See `AGENTS.md` for the layout, the fixture workflow and the project rules, and 
 
 ## Status
 
-Phase 1 (PrusaSlicer, plain or binary G-code, Marlin/Prusa/Klipper dialect). Binary G-code is decoded, transformed as text and re-encoded with the metadata and thumbnails copied byte-for-byte (`docs/adr/0007-binary-gcode-decode-transform-reencode.md`). Arc moves (`G2`/`G3`) are ordinary moves (`docs/adr/0008-arc-moves-supported-in-phase-1.md`), so stock Core One and 3.0 profiles work unchanged.
+Phase 1 (PrusaSlicer, plain or binary G-code, Marlin/Prusa/Klipper dialect). Klipper output needs the PrusaSlicer printer profile's G-code flavor set to Klipper, because Klipper reads only `S` in `M109` (`docs/adr/0012-klipper-waits-with-m109-s.md`). Binary G-code is decoded, transformed as text and re-encoded with the metadata and thumbnails copied byte-for-byte (`docs/adr/0007-binary-gcode-decode-transform-reencode.md`). Arc moves (`G2`/`G3`) are ordinary moves (`docs/adr/0008-arc-moves-supported-in-phase-1.md`), so stock Core One and 3.0 profiles work unchanged.
 
 ## Problems and feedback
 
