@@ -43,6 +43,7 @@ Slicer-Agnostic Temperature Tower Generator is a free, 100% client-side browser 
 - In binary output the tier marker is its own comment line `; [temptower] tier <i>` before a bare `M104`/`M109`, because MeatPack drops inline comments; the ADR-0002 property test runs over the decoded text of a binary input too (ADR-0007).
 - Geometry and transform read tier boundaries from one shared function over the tower config; no second implementation of `b + i·h` exists (ADR-0005). The transform reads tier starts through `tierStartZ`, which is 0 for tier 0 and `tierBoundaryZ` otherwise (ADR-0009).
 - The STL base name encodes the tower config, and a round-trip test proves encode/decode is lossless (ADR-0005).
+- The end temperature is the top tier: validation rejects fewer than 2 tiers and a step that does not divide the range (ADR-0013).
 - Config recovery has tests for three cases: a G-code name that keeps the STL base name, a renamed G-code with object-label comments, and neither (manual entry) (ADR-0005).
 - Geometry tests assert that the mesh is manifold, its height is `b + n·h`, and each tier's label shows that tier's temperature (ADR-0006).
 
