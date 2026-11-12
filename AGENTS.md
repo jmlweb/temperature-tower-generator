@@ -30,7 +30,8 @@ Slicer-Agnostic Temperature Tower Generator is a free, 100% client-side browser 
   - An inserted header line starts with `; [temptower]`.
   - A neutralized input line is prefixed with `; [temptower] neutralized: `.
   - All other input lines appear byte-for-byte.
-- Tier 0 starts at Z 0: its command is an `M109 R<t>`, or `M109 S<t>` when `gcode_flavor` is `klipper` (whatever `waitForTemperature` says) before the first extruding move of the file, so the purge and base print at tier 0's temperature (ADR-0009, ADR-0010). A tier starts at the first layer whose top Z is above its start Z, and waiting tiers use `M109 R` so the nozzle also waits for cooling (ADR-0010), or `M109 S` for Klipper, which reads only `S` (ADR-0012).
+- Tier 0 starts at Z 0: its command is a waiting `M109` (whatever `waitForTemperature` says) before the first extruding move of the file, so the purge and base print at tier 0's temperature (ADR-0009, ADR-0010). A tier starts at the first layer whose top Z is above its start Z, and waiting tiers use `M109 R` so the nozzle also waits for cooling (ADR-0010), or `M109 S` for Klipper, which reads only `S` (ADR-0012).
+- The temperature dialect comes from the slicer config's `gcode_flavor`: `klipper` selects `M109 S`, any other value or none keeps `M109 R` (ADR-0012).
 - Only `M104`/`M109` lines (including `T`-indexed variants) after the tier 0 command are neutralized, except turn-offs (`S0`). The start G-code before it is kept. A fixture covers both cases (ADR-0002, ADR-0009).
 - Layer boundaries come from motion state; slicer markers never override them and a disagreement emits a warning (ADR-0003).
 - Every supported G-code feature (Z-hop, relative E, `G92 E0`, arcs) has at least one fixture with a golden output (ADR-0003, ADR-0008).

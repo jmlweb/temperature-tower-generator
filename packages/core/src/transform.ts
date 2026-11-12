@@ -155,9 +155,8 @@ export const transformGcode = ({ lines, motion, config, markerStyle = 'inline', 
     const inserts = insertBefore.get(line.index)
     if (inserts) {
       for (const placement of inserts) {
-        const inserted = markerStyle === 'inline'
-            ? [tierCommand(config, placement.tier, 'inline', dialect)]
-            : [tierMarkerLine(placement.tier), tierCommand(config, placement.tier, 'line', dialect)]
+        const command = tierCommand(config, placement.tier, markerStyle, dialect)
+        const inserted = markerStyle === 'inline' ? [command] : [tierMarkerLine(placement.tier), command]
         for (const text of inserted) {
           changes.push({ kind: 'insert', lineIndex: line.index, tier: placement.tier, text })
           output.push(text, ending)

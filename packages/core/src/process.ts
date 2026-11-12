@@ -52,13 +52,8 @@ export const processGcode = ({ file, config }: ProcessInput): ProcessResult => {
   const issues = validateGcode({ motion, slicer, config, binaryError: file.binaryError })
   const blocked = hasErrors(issues)
   // MeatPack drops inline comments, so binary output carries the tier marker on its own line (ADR-0007).
-  const transformed = blocked ? null : transformGcode({
-        lines,
-        motion,
-        config,
-        markerStyle: file.binary ? 'line' : 'inline',
-        dialect: temperatureDialect(slicer.config.gcode_flavor),
-      })
+  const dialect = temperatureDialect(slicer.config.gcode_flavor)
+  const transformed = blocked ? null : transformGcode({ lines, motion, config, markerStyle: file.binary ? 'line' : 'inline', dialect })
   const report = buildReport({
     fileName: file.fileName,
     slicer,

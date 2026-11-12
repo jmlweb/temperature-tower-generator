@@ -1,7 +1,9 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEncode, splitGcodeChunks, utf8Encode, writeBlock, writeFileHeader, concatBytes, BgcodeBlockType, BgcodeCompression, ChecksumType, GcodeEncoding, MetadataEncoding } from './bgcode/index.ts'
+import { loadGcodeFile } from './gcode-file.ts'
 import { parseGcode } from './gcode-lines.ts'
+import { processGcode } from './process.ts'
 import { analyzeMotion } from './motion.ts'
 import { Material, type TowerConfig } from './tower-config.ts'
 import { countTierCommands, NEUTRALIZED_PREFIX, planTiers, TemperatureDialect, temperatureDialect, tierMarkerLine, transformGcode } from './transform.ts'
@@ -178,7 +180,10 @@ describe('line-preserving property (ADR-0002)', () => {
       const recovered: string[] = []
       for (const line of outputLines) {
         if (line.startsWith(`${MARKER} `) && !line.startsWith(NEUTRALIZED_PREFIX)) continue
-        if (TIER_SUFFIX.test(line)) continue
+        if (TIER_SUFFIX.test(line)) {
+          expect(line).toMatch(dialect === TemperatureDialect.KLIPPER ? /^(M109|M104) S\d+ / : /^(M109 R|M104 S)\d+ /)
+          continue
+        }
         if (line.startsWith(NEUTRALIZED_PREFIX)) {
           const original = line.slice(NEUTRALIZED_PREFIX.length)
           expect(original).toMatch(/^\s*M10[49]\b/i)
@@ -194,11 +199,11 @@ describe('line-preserving property (ADR-0002)', () => {
 })
 
 /** A minimal binary file around `text`, in PrusaSlicer's default encoding. */
-const binaryFile = (text: string): Uint8Array =>
+const binaryFile = (text: string, printer: Record<string, string> = { printer_model: 'COREONE' }): Uint8Array =>
   concatBytes([
     writeFileHeader(ChecksumType.CRC32),
     writeBlock({ type: BgcodeBlockType.FILE_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ Producer: 'PrusaSlicer 2.9.0' }) }, ChecksumType.CRC32),
-    writeBlock({ type: BgcodeBlockType.PRINTER_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni({ printer_model: 'COREONE' }) }, ChecksumType.CRC32),
+    writeBlock({ type: BgcodeBlockType.PRINTER_METADATA, compression: BgcodeCompression.NONE, parameters: encodingParameters(MetadataEncoding.INI), data: formatIni(printer) }, ChecksumType.CRC32),
     ...splitGcodeChunks(utf8Encode(text)).map((chunk) =>
       writeBlock({ type: BgcodeBlockType.GCODE, compression: BgcodeCompression.HEATSHRINK_12_4, parameters: encodingParameters(GcodeEncoding.MEATPACK_COMMENTS), data: meatpackEncode(chunk, { removeComments: false }) }, ChecksumType.CRC32),
     ),
@@ -221,7 +226,7 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       let expectCommand = false
       for (const line of outputLines) {
         if (expectCommand) {
-          expect(line).toMatch(/^M109 [RS]\d+$|^M104 S\d+$/)
+          expect(line).toMatch(dialect === TemperatureDialect.KLIPPER ? /^(M109|M104) S\d+$/ : /^(M109 R|M104 S)\d+$/)
           expectCommand = false
           continue
         }
@@ -242,4 +247,21 @@ describe('line-preserving property over binary G-code (ADR-0007)', () => {
       expect(output.text.startsWith(`${MARKER} `)).toBe(true)
     },
   )
+})
+
+describe('dialect from the slicer config (ADR-0012)', () => {
+  const tierZero = (bytes: Uint8Array, fileName: string): string | undefined =>
+    processGcode({ file: loadGcodeFile({ fileName, bytes }), config }).report.inserted.find((line) => /^M109 /.test(line.text))?.text
+
+  it('waits with M109 S when binary printer metadata says gcode_flavor = klipper', () => {
+    const text = `${towerGcode(19)}\n`
+    expect(tierZero(binaryFile(text, { printer_model: 'COREONE', gcode_flavor: 'klipper' }), 'tower.bgcode')).toBe('M109 S230')
+    expect(tierZero(binaryFile(text, { printer_model: 'COREONE', gcode_flavor: 'marlin2' }), 'tower.bgcode')).toBe('M109 R230')
+  })
+
+  it('waits with M109 S when the plain config block says gcode_flavor = klipper', () => {
+    const withFlavor = (flavor: string) => utf8Encode(`${towerGcode(19)}\n; gcode_flavor = ${flavor}\n`)
+    expect(tierZero(withFlavor('klipper'), 'tower.gcode')).toBe(`M109 S230 ${MARKER} tier 0`)
+    expect(tierZero(withFlavor('marlin'), 'tower.gcode')).toBe(`M109 R230 ${MARKER} tier 0`)
+  })
 })
