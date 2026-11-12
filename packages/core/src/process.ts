@@ -1,6 +1,6 @@
-import { encodeBgcode, utf8Encode } from './bgcode/index.ts'
+import { encodeBgcode } from './bgcode/index.ts'
 import { TowerConfigError } from './errors.ts'
-import type { LoadedGcode } from './gcode-file.ts'
+import { encodePlainText, type LoadedGcode } from './gcode-file.ts'
 import { parseGcode } from './gcode-lines.ts'
 import { analyzeMotion } from './motion.ts'
 import { recoverTowerConfig, type RecoveredConfig } from './recover-config.ts'
@@ -32,7 +32,7 @@ export interface ProcessResult {
   readonly report: Report
   /** Transformed G-code text (the decoded form for binary input), or null when an error blocks the download (ADR-0004). */
   readonly output: string | null
-  /** Bytes to download: UTF-8 text, or a re-encoded `.bgcode` for binary input (ADR-0007). */
+  /** Bytes to download: text in the input's encoding, or a re-encoded `.bgcode` for binary input (ADR-0007). */
   readonly outputBytes: Uint8Array | null
   readonly outputFileName: string
 }
@@ -65,6 +65,6 @@ export const processGcode = ({ file, config }: ProcessInput): ProcessResult => {
     input: { format: file.binary || file.binaryError !== null ? 'binary' : 'text', binary: file.binary?.summary ?? null },
   })
   const output = transformed?.text ?? null
-  const outputBytes = output === null ? null : file.binary ? encodeBgcode(file.binary, output) : utf8Encode(output)
+  const outputBytes = output === null ? null : file.binary ? encodeBgcode(file.binary, output) : encodePlainText(output, file.textEncoding)
   return { report, output, outputBytes, outputFileName: outputFileName(file.fileName, file.binary !== null) }
 }

@@ -1,7 +1,7 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { decodeBgcode, encodeBgcode, encodingParameters, formatIni, meatpackEncode, splitGcodeChunks, utf8Encode, writeBlock, writeFileHeader, concatBytes, BgcodeBlockType, BgcodeCompression, ChecksumType, GcodeEncoding, MetadataEncoding } from './bgcode/index.ts'
-import { loadGcodeFile } from './gcode-file.ts'
+import { encodePlainText, latin1Decode, latin1Encode, loadGcodeFile, TextEncoding } from './gcode-file.ts'
 import { parseGcode } from './gcode-lines.ts'
 import { processGcode } from './process.ts'
 import { analyzeMotion } from './motion.ts'
@@ -263,5 +263,65 @@ describe('dialect from the slicer config (ADR-0012)', () => {
     const withFlavor = (flavor: string) => utf8Encode(`${towerGcode(19)}\n; gcode_flavor = ${flavor}\n`)
     expect(tierZero(withFlavor('klipper'), 'tower.gcode')).toBe(`M109 S230 ${MARKER} tier 0`)
     expect(tierZero(withFlavor('marlin'), 'tower.gcode')).toBe(`M109 R230 ${MARKER} tier 0`)
+  })
+})
+
+/**
+ * Undoes the three ADR-0002 changes on raw output bytes: drops header and
+ * inserted tier lines and unwraps neutralized lines. Latin-1 maps each byte to
+ * one code point, so string work here is byte work.
+ */
+const recoverInputBytes = (output: Uint8Array): Uint8Array => {
+  const kept = latin1Decode(output)
+    .split('\n')
+    .filter((line) => !/^(?:; \[temptower\] (?!neutralized: ).*|.* ; \[temptower\] tier \d+)\r?$/.test(line))
+    .map((line) => (line.startsWith(NEUTRALIZED_PREFIX) ? line.slice(NEUTRALIZED_PREFIX.length) : line))
+  return latin1Encode(kept.join('\n'))
+}
+
+const rawCommentArbitrary = fc
+  .uint8Array({ minLength: 1, maxLength: 12 })
+  .map((bytes) => new Uint8Array([0x3b, 0x20, ...bytes.filter((b) => b !== 0x0a && b !== 0x0d)]))
+
+describe('line-preserving property over raw bytes (ADR-0002, RPT-006)', () => {
+  test.prop([fc.array(fc.oneof(lineArbitrary.map((line) => utf8Encode(line)), rawCommentArbitrary), { maxLength: 80 }), endingArbitrary, configArbitrary])(
+    'every input byte outside the changed lines reaches the output unchanged, valid UTF-8 or not',
+    (inputLines, ending, towerConfig) => {
+      const endingBytes = utf8Encode(ending)
+      const bytes = new Uint8Array(inputLines.flatMap((line, i) => [...(i === 0 ? [] : endingBytes), ...line]))
+      const file = loadGcodeFile({ fileName: 'tower.gcode', bytes })
+      const parsed = parseGcode(file.text)
+      const result = transformGcode({ lines: parsed, motion: analyzeMotion(parsed), config: towerConfig })
+      expect([...recoverInputBytes(encodePlainText(result.text, file.textEncoding))]).toEqual([...bytes])
+    },
+  )
+
+  it('keeps a Latin-1 byte in a comment line of a plain upload', () => {
+    const bytes = new Uint8Array([...utf8Encode('; caf'), 0xe9, ...utf8Encode(` note\n${towerGcode(19)}\n`)])
+    const file = loadGcodeFile({ fileName: 'tower.gcode', bytes })
+    expect(file.textEncoding).toBe(TextEncoding.LATIN1)
+    const output = processGcode({ file, config }).outputBytes!
+    expect(output.includes(0xe9)).toBe(true)
+    expect(latin1Decode(output)).toContain('; café note\n')
+    expect([...recoverInputBytes(output)]).toEqual([...bytes])
+  })
+
+  it.each([
+    ['empty', [], TextEncoding.UTF8],
+    ['a BOM', [0xef, 0xbb, 0xbf, 0x3b], TextEncoding.UTF8],
+    ['a literal U+FFFD', [0x3b, 0xef, 0xbf, 0xbd], TextEncoding.UTF8],
+    ['a truncated sequence', [0x3b, 0xe2, 0x82], TextEncoding.LATIN1],
+    ['an encoded surrogate', [0x3b, 0xed, 0xa0, 0x80], TextEncoding.LATIN1],
+  ] as const)('reads %s input as %s and writes the same bytes back', (_, input, encoding) => {
+    const bytes = new Uint8Array(input)
+    const file = loadGcodeFile({ fileName: 'tower.gcode', bytes })
+    expect(file.textEncoding).toBe(encoding)
+    expect([...encodePlainText(file.text, file.textEncoding)]).toEqual([...bytes])
+  })
+
+  it('keeps UTF-8 decoding for valid UTF-8, multi-byte names included', () => {
+    const file = loadGcodeFile({ fileName: 'tower.gcode', bytes: utf8Encode(`; café \u{1F600}\n${towerGcode(19)}\n`) })
+    expect(file.textEncoding).toBe(TextEncoding.UTF8)
+    expect(file.text.startsWith('; café \u{1F600}\n')).toBe(true)
   })
 })
