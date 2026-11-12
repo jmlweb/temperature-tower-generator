@@ -17,6 +17,8 @@ export {
   towerHeight,
   PRUSA_MAX_NOZZLE_TEMPERATURE,
   temperaturesAbovePrinterLimit,
+  COLD_EXTRUSION_MIN_TEMPERATURE,
+  temperaturesBelowColdExtrusionLimit,
   temperaturesOutsidePreset,
   validateTowerConfig,
   type TowerConfig,

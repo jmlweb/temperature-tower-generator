@@ -285,6 +285,7 @@ const main = async (): Promise<void> => {
 
   writeDerived('height-mismatch', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, blockHeight: 10 }, { errors: ['height-mismatch'] }, 'Same sliced file as zhop-on_rel-e_0.20 with a config that expects a 31 mm tower.')
   writeDerived('temperature-above-printer-limit', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, material: Material.CUSTOM, startTemperature: 300, endTemperature: 290 }, { warnings: ['temperature-above-printer-limit'] }, 'Same sliced file as zhop-on_rel-e_0.20 with a Custom tower above the 290 °C Prusa nozzle limit (ADR-0011).')
+  writeDerived('temperature-below-cold-extrusion-limit', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, material: Material.CUSTOM, startTemperature: 180, endTemperature: 170 }, { warnings: ['temperature-below-cold-extrusion-limit'] }, 'Same sliced file as zhop-on_rel-e_0.20 with a Custom tower below the 175 °C cold-extrusion limit (ADR-0014).')
   writeDerived('temperature-outside-preset', 'zhop-on_rel-e_0.20.gcode', { ...FIXTURE_CONFIG, startTemperature: 240, endTemperature: 230 }, { warnings: ['temperature-outside-preset'] }, 'Same sliced file as zhop-on_rel-e_0.20 with tiers above the PLA preset range.')
 }
 

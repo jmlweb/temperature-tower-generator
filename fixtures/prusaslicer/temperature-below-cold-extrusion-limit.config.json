@@ -1,0 +1,18 @@
+{
+  "gcode": "zhop-on_rel-e_0.20.gcode",
+  "config": {
+    "material": "CUSTOM",
+    "startTemperature": 180,
+    "endTemperature": 170,
+    "step": 5,
+    "blockHeight": 6,
+    "baseHeight": 1,
+    "waitForTemperature": false
+  },
+  "expect": {
+    "warnings": [
+      "temperature-below-cold-extrusion-limit"
+    ]
+  },
+  "notes": "Same sliced file as zhop-on_rel-e_0.20 with a Custom tower below the 175 °C cold-extrusion limit (ADR-0014)."
+}
