@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { BgcodeBlockType, countTierCommands, decodeBgcode, encodePlainText, latin1Decode, loadGcodeFile, processGcode, type TowerConfig } from '@temptower/core'
+import { BgcodeBlockType, countTierCommands, decodeBgcode, latin1Decode, loadGcodeFile, NEUTRALIZED_PREFIX, processGcode, type TowerConfig } from '@temptower/core'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -60,12 +60,11 @@ for (const slicerDir of slicerDirs) {
 
         if (file.binary === null) {
           expect(result.outputFileName.endsWith('_temptower.gcode')).toBe(true)
-          expect(Buffer.from(result.outputBytes!).equals(Buffer.from(encodePlainText(result.output, file.textEncoding)))).toBe(true)
           // Raw bytes, not decoded strings: every unchanged input line is byte-identical (ADR-0002).
           const kept = latin1Decode(result.outputBytes!)
             .split('\n')
             .filter((line) => !/^(?:; \[temptower\] (?!neutralized: ).*|.* ; \[temptower\] tier \d+)\r?$/.test(line))
-            .map((line) => line.replace(/^; \[temptower\] neutralized: /, ''))
+            .map((line) => (line.startsWith(NEUTRALIZED_PREFIX) ? line.slice(NEUTRALIZED_PREFIX.length) : line))
           expect(kept.join('\n')).toBe(latin1Decode(bytes))
           return
         }

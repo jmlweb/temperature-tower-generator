@@ -1,4 +1,5 @@
-import { decodeBgcode, hasBgcodeMagic, utf8Decode, utf8Encode, type BgcodeDocument } from './bgcode/index.ts'
+import { decodeBgcode, hasBgcodeMagic, utf8DecodeReporting, utf8Encode, type BgcodeDocument } from './bgcode/index.ts'
+import { GcodeInputError } from './errors.ts'
 
 /**
  * How plain-text bytes map to the text the pipeline sees. `latin1` maps each byte
@@ -28,9 +29,12 @@ export interface LoadGcodeInput {
 /** Binary G-code is recognised by the `.bgcode` extension or the `GCDE` magic. */
 export const isBinaryGcode = (bytes: Uint8Array, fileName = ''): boolean => fileName.toLowerCase().endsWith('.bgcode') || hasBgcodeMagic(bytes)
 
+// Chunked because spreading a whole file into fromCharCode exceeds the engine's argument limit.
+const CHUNK = 4096
+
 export const latin1Decode = (bytes: Uint8Array): string => {
   const parts: string[] = []
-  for (let i = 0; i < bytes.length; i += 4096) parts.push(String.fromCharCode(...bytes.subarray(i, i + 4096)))
+  for (let i = 0; i < bytes.length; i += CHUNK) parts.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK)))
   return parts.join('')
 }
 
@@ -39,18 +43,16 @@ export const latin1Encode = (text: string): Uint8Array => {
   const out = new Uint8Array(text.length)
   for (let i = 0; i < text.length; i += 1) {
     const code = text.charCodeAt(i)
-    if (code > 0xff) throw new RangeError(`Code point U+${code.toString(16).toUpperCase()} at offset ${i} has no single-byte form`)
+    if (code > 0xff) throw new GcodeInputError(`Code point U+${code.toString(16).toUpperCase()} at offset ${i} has no single-byte form`)
     out[i] = code
   }
   return out
 }
 
-const sameBytes = (a: Uint8Array, b: Uint8Array): boolean => a.length === b.length && a.every((byte, i) => byte === b[i])
-
-/** UTF-8 when the bytes round-trip through it, else Latin-1, so no input byte is ever replaced. */
+/** UTF-8 unless a byte had to be replaced, then Latin-1, so no input byte is ever lost. */
 const decodePlainText = (bytes: Uint8Array): { readonly text: string; readonly textEncoding: TextEncoding } => {
-  const text = utf8Decode(bytes)
-  return sameBytes(utf8Encode(text), bytes) ? { text, textEncoding: TextEncoding.UTF8 } : { text: latin1Decode(bytes), textEncoding: TextEncoding.LATIN1 }
+  const { text, hasReplacements } = utf8DecodeReporting(bytes)
+  return hasReplacements ? { text: latin1Decode(bytes), textEncoding: TextEncoding.LATIN1 } : { text, textEncoding: TextEncoding.UTF8 }
 }
 
 export const encodePlainText = (text: string, textEncoding: TextEncoding): Uint8Array =>

@@ -306,6 +306,19 @@ describe('line-preserving property over raw bytes (ADR-0002, RPT-006)', () => {
     expect([...recoverInputBytes(output)]).toEqual([...bytes])
   })
 
+  it.each([
+    ['empty', [], TextEncoding.UTF8],
+    ['a BOM', [0xef, 0xbb, 0xbf, 0x3b], TextEncoding.UTF8],
+    ['a literal U+FFFD', [0x3b, 0xef, 0xbf, 0xbd], TextEncoding.UTF8],
+    ['a truncated sequence', [0x3b, 0xe2, 0x82], TextEncoding.LATIN1],
+    ['an encoded surrogate', [0x3b, 0xed, 0xa0, 0x80], TextEncoding.LATIN1],
+  ] as const)('reads %s input as %s and writes the same bytes back', (_, input, encoding) => {
+    const bytes = new Uint8Array(input)
+    const file = loadGcodeFile({ fileName: 'tower.gcode', bytes })
+    expect(file.textEncoding).toBe(encoding)
+    expect([...encodePlainText(file.text, file.textEncoding)]).toEqual([...bytes])
+  })
+
   it('keeps UTF-8 decoding for valid UTF-8, multi-byte names included', () => {
     const file = loadGcodeFile({ fileName: 'tower.gcode', bytes: utf8Encode(`; café \u{1F600}\n${towerGcode(19)}\n`) })
     expect(file.textEncoding).toBe(TextEncoding.UTF8)

@@ -1,6 +1,6 @@
 export { BgcodeError, type BgcodeErrorCode } from './errors.ts'
 export { crc32 } from './crc32.ts'
-export { utf8Encode, utf8Decode } from './utf8.ts'
+export { utf8Encode, utf8Decode, utf8DecodeReporting } from './utf8.ts'
 export { heatshrinkDecode, heatshrinkEncode, HEATSHRINK_11_4, HEATSHRINK_12_4, type HeatshrinkParams } from './heatshrink.ts'
 export { inflateZlib, zlibStore } from './inflate.ts'
 export { meatpackDecode, meatpackEncode, type MeatpackOptions } from './meatpack.ts'

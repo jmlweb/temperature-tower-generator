@@ -36,7 +36,14 @@ export const utf8Encode = (text: string): Uint8Array => {
 }
 
 /** Decodes UTF-8, replacing malformed sequences with U+FFFD like the platform decoder does. */
-export const utf8Decode = (bytes: Uint8Array): string => {
+export const utf8Decode = (bytes: Uint8Array): string => utf8DecodeReporting(bytes).text
+
+/**
+ * Like `utf8Decode`, and also says whether any malformed byte was replaced, so a
+ * caller can fall back to a lossless decoding without re-encoding to compare.
+ */
+export const utf8DecodeReporting = (bytes: Uint8Array): { readonly text: string; readonly hasReplacements: boolean } => {
+  let hasReplacements = false
   const parts: string[] = []
   let chunk: number[] = []
   const flush = (): void => {
@@ -81,6 +88,7 @@ export const utf8Decode = (bytes: Uint8Array): string => {
         i += 1
       } else {
         chunk.push(0xfffd)
+        hasReplacements = true
         i += 1
       }
     } else {
@@ -95,5 +103,5 @@ export const utf8Decode = (bytes: Uint8Array): string => {
     if (chunk.length >= 4096) flush()
   }
   flush()
-  return parts.join('')
+  return { text: parts.join(''), hasReplacements }
 }
