@@ -253,6 +253,17 @@ export const PRUSA_MAX_NOZZLE_TEMPERATURE = 290
 export const temperaturesAbovePrinterLimit = (config: TowerConfig): readonly number[] =>
   tierTemperatures(config).filter((t) => t > PRUSA_MAX_NOZZLE_TEMPERATURE)
 
+/** The end temperature is the top tier, so the step must reach it exactly in at least one step (ADR-0013). */
+const stepProblems = (config: TowerConfig): readonly string[] => {
+  const range = Math.abs(config.endTemperature - config.startTemperature)
+  if (config.step > range) return [`step ${config.step} °C is larger than the ${range} °C range, so the tower would have 1 tier; use at least 2 tiers`]
+  if (range % config.step === 0) return []
+  const direction = config.endTemperature >= config.startTemperature ? 1 : -1
+  const reachable = (tiers: number) => config.startTemperature + direction * config.step * tiers
+  const below = Math.floor(range / config.step)
+  return [`step ${config.step} °C does not reach the top tier ${config.endTemperature} °C; use ${reachable(below)} or ${reachable(below + 1)} °C, or another step`]
+}
+
 export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   const problems: string[] = []
   const isFinite = (n: number) => Number.isFinite(n)
@@ -265,6 +276,7 @@ export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   if (config.startTemperature === config.endTemperature) problems.push('start and end temperature must differ')
   if (!isFinite(config.blockHeight) || config.blockHeight < MIN_BLOCK_HEIGHT) problems.push(`block height must be at least ${MIN_BLOCK_HEIGHT} mm`)
   if (!isFinite(config.baseHeight) || config.baseHeight < MIN_BASE_HEIGHT) problems.push(`base height must be at least ${MIN_BASE_HEIGHT} mm`)
+  if (problems.length === 0) problems.push(...stepProblems(config))
   if (problems.length === 0 && tierCount(config) > MAX_TIERS) problems.push(`at most ${MAX_TIERS} tiers`)
   if (!(Object.values(Material) as string[]).includes(config.material)) problems.push('unknown material')
   return problems

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Material, temperaturesOutsidePreset, tierBoundaryZ, tierCount, tierStartZ, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
+import { MATERIAL_PRESETS, Material, temperaturesOutsidePreset, tierBoundaryZ, tierCount, tierStartZ, tierTemperatures, towerHeight, validateTowerConfig, type TowerConfig } from './tower-config.ts'
 
 const pla: TowerConfig = {
   material: Material.PLA,
@@ -47,5 +47,21 @@ describe('tower config', () => {
     expect(validateTowerConfig({ ...pla, endTemperature: 230 })).toContain('start and end temperature must differ')
     expect(validateTowerConfig({ ...pla, blockHeight: 3 })).toContain('block height must be at least 6 mm')
     expect(validateTowerConfig({ ...pla, step: 1 })).toContain('at most 20 tiers')
+  })
+
+  it('rejects a step that leaves one tier or misses the top tier (ADR-0013)', () => {
+    expect(validateTowerConfig({ ...pla, startTemperature: 230, endTemperature: 228, step: 5 })).toEqual([
+      'step 5 °C is larger than the 2 °C range, so the tower would have 1 tier; use at least 2 tiers',
+    ])
+    expect(validateTowerConfig({ ...pla, startTemperature: 230, endTemperature: 190, step: 15 })).toEqual([
+      'step 15 °C does not reach the top tier 190 °C; use 200 or 185 °C, or another step',
+    ])
+    expect(validateTowerConfig({ ...pla, startTemperature: 190, endTemperature: 230, step: 15 })).toEqual([
+      'step 15 °C does not reach the top tier 230 °C; use 220 or 235 °C, or another step',
+    ])
+  })
+
+  it('keeps every material preset valid', () => {
+    for (const preset of MATERIAL_PRESETS) expect(validateTowerConfig(preset.config), preset.label).toEqual([])
   })
 })
