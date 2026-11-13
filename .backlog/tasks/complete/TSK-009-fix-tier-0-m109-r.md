@@ -29,6 +29,7 @@ On stock Klipper, `M109 R<t>` sets the hotend target to 0 °C and does not wait,
 
 ## Learnings
 
+- LRN-004: Klipper fixtures and Klipper M109 semantics
 ## Progress Log
 
 - [2026-10-30] Created

@@ -1,6 +1,6 @@
 # 0005. One tower config drives both geometry and transform
 
-**Status:** accepted
+**Status:** accepted; ADR-0013 makes the end temperature the top tier, reached exactly
 
 ## Context
 Labels that drift from the tested temperatures are a core pain: users re-use a fixed STL with a different range, or change the block height in one place but not the other. The tower STL is generated before slicing and the G-code is transformed after it, so the two steps happen minutes apart. The uploaded G-code's name comes from the slicer's output filename format. PrusaSlicer's default format starts with the input file's base name, but users can change it.
