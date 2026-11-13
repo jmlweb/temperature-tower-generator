@@ -27,6 +27,7 @@ started: 2026-11-11
 
 ## Learnings
 
+- LRN-005: gh pr checks --watch returns before CI registers
 ## Progress Log
 
 - [2026-11-02] Created
