@@ -1,12 +1,14 @@
 ---
 id: TSK-001
 title: Validate PrusaSlicer demand with a hand-made demo
-status: pending
+status: blocked
 priority: P1
 tags: [validation, community]
 created: 2026-10-18
 source: kickstart
 depends-on: []
+started: 2026-11-14
+blocked-by: Needs a human: criteria 1-3 require posting the demo on the Prusa forum and r/prusa3d from a personal account, waiting 14 days and tallying replies; an unattended agent must not publish on public forums, and the 2026-11-15 decision date cannot fit a 14-day window from 2026-11-14. Criterion 4 (prior-tool search) is best done alongside the post.
 ---
 
 # Validate PrusaSlicer demand with a hand-made demo
@@ -32,3 +34,5 @@ depends-on: []
 ## Progress Log
 
 - [2026-10-18] Created
+- [2026-11-14] Started
+- [2026-11-14] Blocked: Needs a human: criteria 1-3 require posting the demo on the Prusa forum and r/prusa3d from a personal account, waiting 14 days and tallying replies; an unattended agent must not publish on public forums, and the 2026-11-15 decision date cannot fit a 14-day window from 2026-11-14. Criterion 4 (prior-tool search) is best done alongside the post.
