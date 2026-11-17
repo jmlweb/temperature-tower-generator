@@ -5,20 +5,21 @@
 | Status | Count |
 |--------|-------|
 | Pending | 2 |
-| Active | 1 |
+| Active | 2 |
 | Blocked | 0 |
 | Complete | 13 |
 
 ## Active Tasks
 
 - TSK-001: Validate PrusaSlicer demand with a hand-made demo (P1)
+- TSK-008: User transforms binary G-code (.bgcode) from Core One and MK4-class printers (P1)
 
 ## Pending Tasks
 
 | ID | Title | Priority | Tags | Created |
 |----|-------|----------|------|---------|
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
-| TSK-008 | User transforms binary G-code (.bgcode) from Core One and MK4-class printers | P1 | gcode, prusaslicer, onboarding | 2026-10-18 |
+| TSK-017 | Fix: Tower config accepts heights the STL name cannot encode, breaking the lossless round trip | P4 |  | 2026-11-17 |
 
 ## Recently Completed
 
