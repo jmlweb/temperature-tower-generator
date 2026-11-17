@@ -1,12 +1,14 @@
 ---
 id: TSK-008
 title: User transforms binary G-code (.bgcode) from Core One and MK4-class printers
-status: pending
+status: blocked
 priority: P1
 tags: [gcode, prusaslicer, onboarding]
 created: 2026-10-18
 source: user
 depends-on: [TSK-002, TSK-004]
+started: 2026-11-17
+blocked-by: Criterion 9 is a physical gate: one print on a Prusa Core One from a transformed .bgcode must reach every tier at its temperature. Needs the user and the printer; all software criteria (1-8) are proven.
 ---
 
 # User transforms binary G-code (.bgcode) from Core One and MK4-class printers
@@ -58,3 +60,6 @@ Out of scope: writing binary G-code for a plain-text input, and the Prusa Connec
 - [2026-10-18] ADR-0007 written; codec, pipeline, worker, UI, fixtures and docs done. Remaining criteria need the user: a GUI-exported `.bgcode` and a physical Core One print.
 - [2026-10-18] First real GUI export failed with `Heatshrink back-reference of 50 bytes at output offset 48`: the reference decoder's history starts zero-filled and the slicer's encoder matches against it. Fixed in `heatshrink.ts`, file added as a fixture. Only `arc-moves` then stood between a Core One user and a download.
 - [2026-10-18] ADR-0008 lifts the arc error (RPT-001 resolved); the GUI export now transforms to a golden and downloads as `.bgcode`. Left: the physical Core One print.
+- [2026-11-17] Started
+- [2026-11-17] Re-verified criteria 1-8 on main: pnpm typecheck → ok; pnpm test → 13 files passed, 135 tests passed, 5 skipped (bgcode reference suite without BGCODE_REFERENCE_DIR); pnpm build → ok (2026-11-17)
+- [2026-11-17] Blocked: Criterion 9 is a physical gate: one print on a Prusa Core One from a transformed .bgcode must reach every tier at its temperature. Needs the user and the printer; all software criteria (1-8) are proven.
