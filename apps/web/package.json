@@ -11,9 +11,9 @@
   "dependencies": {
     "@temptower/core": "workspace:*",
     "@temptower/geometry": "workspace:*",
-    "manifold-3d": "^3.5.4"
+    "manifold-3d": "^3.5.5"
   },
   "devDependencies": {
-    "vite": "^8.3.5"
+    "vite": "^8.3.8"
   }
 }
