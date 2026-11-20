@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 2 |
+| Pending | 3 |
 | Active | 2 |
 | Blocked | 0 |
 | Complete | 13 |
@@ -20,6 +20,7 @@
 |----|-------|----------|------|---------|
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
 | TSK-017 | Fix: Tower config accepts heights the STL name cannot encode, breaking the lossless round trip | P4 |  | 2026-11-17 |
+| TSK-018 | Fix: Multi-tool output neutralizes the inactive tool's heat command, so it prints cold while the warning says only the active tool changes | P4 |  | 2026-11-20 |
 
 ## Recently Completed
 
