@@ -40,6 +40,13 @@ export const MIN_BASE_HEIGHT = 1
 export const MAX_TIERS = 20
 export const Z_EPSILON = 0.001
 
+/** The STL base name keeps numbers to 3 decimals (ADR-0005); `String` writes 1e21 and above in exponent form, which it cannot decode. */
+export const NAME_DECIMALS = 3
+const NAME_DECIMAL_SCALE = 10 ** NAME_DECIMALS
+export const LARGEST_NAME_NUMBER_EXCLUDED = 1e21
+
+export const roundToNameDecimals = (n: number): number => Math.round(n * NAME_DECIMAL_SCALE) / NAME_DECIMAL_SCALE
+
 export const MATERIAL_PRESETS: readonly MaterialPreset[] = [
   {
     material: Material.PLA,
@@ -270,6 +277,14 @@ const stepProblems = (config: TowerConfig): readonly string[] => {
   return [`step ${config.step} °C does not reach the top tier ${config.endTemperature} °C; use ${reachable(below)} or ${reachable(below + 1)} °C, or another step`]
 }
 
+/** A height the STL name cannot carry exactly would break the lossless round trip of ADR-0005. */
+const nameEncodingProblems = (label: string, height: number): readonly string[] => {
+  if (!Number.isFinite(height)) return []
+  if (height >= LARGEST_NAME_NUMBER_EXCLUDED) return [`${label} must be below ${LARGEST_NAME_NUMBER_EXCLUDED} mm`]
+  if (roundToNameDecimals(height) !== height) return [`${label} must have at most ${NAME_DECIMALS} decimals`]
+  return []
+}
+
 export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   const problems: string[] = []
   const isFinite = (n: number) => Number.isFinite(n)
@@ -282,6 +297,7 @@ export const validateTowerConfig = (config: TowerConfig): readonly string[] => {
   if (config.startTemperature === config.endTemperature) problems.push('start and end temperature must differ')
   if (!isFinite(config.blockHeight) || config.blockHeight < MIN_BLOCK_HEIGHT) problems.push(`block height must be at least ${MIN_BLOCK_HEIGHT} mm`)
   if (!isFinite(config.baseHeight) || config.baseHeight < MIN_BASE_HEIGHT) problems.push(`base height must be at least ${MIN_BASE_HEIGHT} mm`)
+  problems.push(...nameEncodingProblems('block height', config.blockHeight), ...nameEncodingProblems('base height', config.baseHeight))
   if (problems.length === 0) problems.push(...stepProblems(config))
   if (problems.length === 0 && tierCount(config) > MAX_TIERS) problems.push(`at most ${MAX_TIERS} tiers`)
   if (!(Object.values(Material) as string[]).includes(config.material)) problems.push('unknown material')

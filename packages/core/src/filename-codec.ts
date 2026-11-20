@@ -1,4 +1,4 @@
-import { Material, type TowerConfig } from './tower-config.ts'
+import { Material, roundToNameDecimals, type TowerConfig } from './tower-config.ts'
 
 /**
  * Versioned, reversible STL base name (ADR-0005), e.g.
@@ -8,7 +8,7 @@ import { Material, type TowerConfig } from './tower-config.ts'
 export const FILENAME_VERSION = 'v1'
 const PREFIX = `temptower_${FILENAME_VERSION}`
 
-const formatNumber = (n: number): string => String(Math.round(n * 1000) / 1000)
+const formatNumber = (n: number): string => String(roundToNameDecimals(n))
 
 export const encodeTowerConfigName = (config: TowerConfig): string =>
   [

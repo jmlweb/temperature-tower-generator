@@ -1,7 +1,26 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { decodeTowerConfigName, encodeTowerConfigName } from './filename-codec.ts'
-import { Material, type TowerConfig } from './tower-config.ts'
+import { LARGEST_NAME_NUMBER_EXCLUDED, Material, MIN_BASE_HEIGHT, MIN_BLOCK_HEIGHT, NAME_DECIMALS, roundToNameDecimals, validateTowerConfig, type TowerConfig } from './tower-config.ts'
+
+const NAME_DECIMAL_SCALE = 10 ** NAME_DECIMALS
+
+/** Every height validation accepts: thousandths up to the safe-integer limit, plus any coarser double below 1e21. */
+const acceptedHeightArbitrary = (min: number): fc.Arbitrary<number> =>
+  fc.oneof(
+    fc.integer({ min: min * NAME_DECIMAL_SCALE, max: Number.MAX_SAFE_INTEGER }).map((n) => n / NAME_DECIMAL_SCALE),
+    fc.double({ min, max: LARGEST_NAME_NUMBER_EXCLUDED, maxExcluded: true, noNaN: true }).filter((n) => roundToNameDecimals(n) === n),
+  )
+
+const validBase: TowerConfig = {
+  material: Material.PLA,
+  startTemperature: 230,
+  endTemperature: 190,
+  step: 5,
+  blockHeight: 10,
+  baseHeight: 2,
+  waitForTemperature: false,
+}
 
 const towerConfigArbitrary = (): fc.Arbitrary<TowerConfig> =>
   fc.record({
@@ -9,8 +28,8 @@ const towerConfigArbitrary = (): fc.Arbitrary<TowerConfig> =>
     startTemperature: fc.integer({ min: 150, max: 320 }),
     endTemperature: fc.integer({ min: 150, max: 320 }),
     step: fc.integer({ min: 1, max: 20 }),
-    blockHeight: fc.integer({ min: 60, max: 300 }).map((n) => n / 10),
-    baseHeight: fc.integer({ min: 10, max: 50 }).map((n) => n / 10),
+    blockHeight: acceptedHeightArbitrary(MIN_BLOCK_HEIGHT),
+    baseHeight: acceptedHeightArbitrary(MIN_BASE_HEIGHT),
     waitForTemperature: fc.boolean(),
   })
 
@@ -53,6 +72,15 @@ describe('filename codec', () => {
   })
 
   test.prop([towerConfigArbitrary()])('round-trips losslessly', (config) => {
+    expect(validateTowerConfig({ ...validBase, blockHeight: config.blockHeight, baseHeight: config.baseHeight })).toEqual([])
     expect(decodeTowerConfigName(`${encodeTowerConfigName(config)}.stl`)).toEqual(config)
+  })
+
+  it('round-trips the boundary heights validation accepts', () => {
+    for (const blockHeight of [MIN_BLOCK_HEIGHT, 10.001, 6.999, 2 ** 53 / NAME_DECIMAL_SCALE, 1e18]) {
+      const config = { ...validBase, blockHeight, baseHeight: 1.234 }
+      expect(validateTowerConfig(config)).toEqual([])
+      expect(decodeTowerConfigName(`${encodeTowerConfigName(config)}.stl`)).toEqual(config)
+    }
   })
 })
