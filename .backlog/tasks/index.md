@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 1 |
+| Pending | 2 |
 | Active | 0 |
 | Blocked | 2 |
 | Complete | 14 |
@@ -19,6 +19,7 @@
 | ID | Title | Priority | Tags | Created |
 |----|-------|----------|------|---------|
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
+| TSK-018 | Fix: Multi-tool output neutralizes the inactive tool's heat command, so it prints cold while the warning says only the active tool changes | P4 |  | 2026-11-20 |
 
 ## Recently Completed
 
