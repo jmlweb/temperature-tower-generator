@@ -49,6 +49,13 @@ describe('tower config', () => {
     expect(validateTowerConfig({ ...pla, step: 1 })).toContain('at most 20 tiers')
   })
 
+  it('rejects heights finer than the 0.001 mm the STL name keeps (ADR-0005)', () => {
+    expect(validateTowerConfig({ ...pla, blockHeight: 10.001, baseHeight: 1.234 })).toEqual([])
+    expect(validateTowerConfig({ ...pla, blockHeight: 10.0004 })).toEqual(['block height must have at most 3 decimals'])
+    expect(validateTowerConfig({ ...pla, baseHeight: 1.2345 })).toEqual(['base height must have at most 3 decimals'])
+    expect(validateTowerConfig({ ...pla, blockHeight: 1e21 })).toContain('block height must be below 1e+21 mm')
+  })
+
   it('rejects a step that leaves one tier or misses the top tier (ADR-0013)', () => {
     expect(validateTowerConfig({ ...pla, startTemperature: 230, endTemperature: 228, step: 5 })).toEqual([
       'step 5 °C is larger than the 2 °C range, so the tower would have 1 tier; use at least 2 tiers',
