@@ -4,10 +4,10 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 2 |
+| Pending | 1 |
 | Active | 0 |
 | Blocked | 2 |
-| Complete | 14 |
+| Complete | 15 |
 
 ## Active Tasks
 
@@ -19,12 +19,12 @@
 | ID | Title | Priority | Tags | Created |
 |----|-------|----------|------|---------|
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
-| TSK-018 | Fix: Multi-tool output neutralizes the inactive tool's heat command, so it prints cold while the warning says only the active tool changes | P4 |  | 2026-11-20 |
 
 ## Recently Completed
 
 | ID | Title | Completed |
 |----|-------|-----------|
+| TSK-018 | Fix: Multi-tool output neutralizes the inactive tool's heat command, so it prints cold while the warning says only the active tool changes | 2026-11-23 |
 | TSK-017 | Fix: Tower config accepts heights the STL name cannot encode, breaking the lossless round trip | 2026-11-20 |
 | TSK-009 | Fix: Tier 0 M109 R turns the hotend off on Klipper firmware | 2026-11-12 |
 | TSK-010 | Fix: No warning when Custom tiers fall below the cold-extrusion limit | 2026-11-12 |
@@ -34,4 +34,3 @@
 | TSK-014 | Fix: Binary G-code report status double-counts inserted tier commands | 2026-11-11 |
 | TSK-015 | Fix: Single-object Klipper or OctoPrint-labelled G-code fails with multiple-objects | 2026-11-11 |
 | TSK-016 | Fix: Config recovery from Klipper object labels fails for non-integer heights | 2026-11-11 |
-| TSK-002 | User transforms PrusaSlicer G-code with a manually entered config | 2026-10-18 |

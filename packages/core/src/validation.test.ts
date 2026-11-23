@@ -89,4 +89,13 @@ describe('validation (ADR-0004)', () => {
   it('warns on multi-tool G-code', () => {
     expect(codes(`T0\n${towerGcode(19)}\nT1`)).toEqual([`warning:${ValidationCode.MULTI_TOOL}`])
   })
+
+  it('says every tool is neutralized and a tool heated after tier 0 can print cold (TSK-018)', () => {
+    const lines = parseGcode(`T0\n${towerGcode(19)}\nT1`)
+    const issues = validateGcode({ motion: analyzeMotion(lines), slicer: readSlicerInfo(lines), config, binaryError: null })
+    const message = issues.find((issue) => issue.code === ValidationCode.MULTI_TOOL)?.message ?? ''
+    expect(message).not.toContain("only the active tool's temperature is changed")
+    expect(message).toContain('every tool')
+    expect(message).toContain('cold')
+  })
 })
