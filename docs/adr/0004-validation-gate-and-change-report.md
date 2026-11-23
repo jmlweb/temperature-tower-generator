@@ -8,7 +8,7 @@ The differentiator against the formula workaround is verifiability: the user see
 ## Decision
 Validation produces two severities. Errors block the download, and warnings allow it.
 - **Errors:** no extrusion detected, variable layer height, multiple objects or sequential printing, binary G-code (`.bgcode`), arc moves (`G2`/`G3`, Phase 1 only), and model height off from the expected height by more than one layer.
-- **Warnings:** model height off by one layer or less, tier temperatures outside the material preset's range, a slicer marker disagreeing with motion, and multi-tool G-code (only the active tool is changed).
+- **Warnings:** model height off by one layer or less, tier temperatures outside the material preset's range, a slicer marker disagreeing with motion, and multi-tool G-code (every tool's `M104`/`M109` after tier 0 is neutralized and tier commands reach only the active tool, so a tool heated after tier 0 can print cold; amended by TSK-018).
 
 Every download is preceded by a report: the detected slicer and base temperature source, the warnings, a temperature-vs-Z chart, and the inserted and neutralized commands. The output file carries a header block stating the tool version, tower config and change summary.
 

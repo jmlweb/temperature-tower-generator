@@ -105,7 +105,7 @@ export const validateGcode = ({ motion, slicer, config, binaryError }: Validatio
   }
 
   if (motion.toolsUsed.length > 1) {
-    issues.push(warning(ValidationCode.MULTI_TOOL, `Multi-tool G-code (tools ${motion.toolsUsed.join(', ')}): only the active tool's temperature is changed.`))
+    issues.push(warning(ValidationCode.MULTI_TOOL, `Multi-tool G-code (tools ${motion.toolsUsed.join(', ')}): every tool's M104/M109 after tier 0 is neutralized and tier commands reach only the active tool, so a tool heated after tier 0 can print cold.`))
   }
 
   return issues

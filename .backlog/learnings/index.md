@@ -8,3 +8,4 @@
 | LRN-004 | Klipper fixtures and Klipper M109 semantics | fixtures, prusaslicer, klipper, tooling | active | 2026-11-13 |
 | LRN-005 | gh pr checks --watch returns before CI registers | ci, github, tooling | active | 2026-11-13 |
 | LRN-006 | STL name number precision limits for tower heights | filename-codec, validation, floating-point | active | 2026-11-20 |
+| LRN-007 | Multi-tool warning text is snapshotted in the fixture report, not the golden | validation, fixtures, testing | active | 2026-11-23 |
