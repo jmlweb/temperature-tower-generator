@@ -4,7 +4,7 @@
 
 | Status | Count |
 |--------|-------|
-| Pending | 1 |
+| Pending | 2 |
 | Active | 0 |
 | Blocked | 2 |
 | Complete | 15 |
@@ -19,6 +19,7 @@
 | ID | Title | Priority | Tags | Created |
 |----|-------|----------|------|---------|
 | TSK-007 | Public launch with counter and physical print gate | P3 | release, community | 2026-10-18 |
+| TSK-019 | Fix: First layer taller than the start G-code purge Z is rejected as variable layer height | P3 |  | 2026-11-26 |
 
 ## Recently Completed
 
